@@ -178,6 +178,7 @@ def draw_cmdbar(win, prompt: str, cmd_input: str, message: str) -> None:
 FS_BACK = "back"
 FS_TOGGLE = "toggle"
 FS_CHALLENGE = "challenge"
+FS_CERTIFICATE = "certificate"
 
 
 def show_fullscreen(
@@ -228,7 +229,7 @@ def show_fullscreen(
     dim_attr = curses.color_pair(C_DIM) | curses.A_DIM
     if completed:
         lines.append(("  ✔ Trilha concluída!", curses.color_pair(C_PROMO) | curses.A_BOLD))
-        lines.append(("  [ Esc / q ] voltar", dim_attr))
+        lines.append(("  [ C ] ver certificado    [ Esc / q ] voltar", action_attr))
     elif in_progress:
         lines.append(("  ⏵ Trilha em andamento", curses.color_pair(C_PROMO) | curses.A_BOLD))
         lines.append(("  [ D ] ver desafio    [ S ] remover    [ Esc / q ] voltar", action_attr))
@@ -248,7 +249,9 @@ def show_fullscreen(
             safe_addstr(stdscr, row, 0, text, attr)
         stdscr.refresh()
         key = stdscr.getch()
-        if key in (ord("s"), ord("S")) and not completed:
+        if key in (ord("c"), ord("C")) and completed:
+            return FS_CERTIFICATE
+        elif key in (ord("s"), ord("S")) and not completed:
             return FS_TOGGLE
         elif key in (ord("d"), ord("D")) and in_progress and not completed:
             return FS_CHALLENGE
@@ -299,6 +302,65 @@ def show_challenge(stdscr, trilha: Trilha, challenge_text: str) -> bool:
         elif key == curses.KEY_UP and offset > 0:
             offset -= 1
     return False
+
+
+# ──────────────────────────────────────────────
+# Username prompt
+# ──────────────────────────────────────────────
+def ask_username(stdscr) -> str:
+    """Show an inline prompt and return the typed username (empty string if cancelled)."""
+    h, w = stdscr.getmaxyx()
+    prompt = "Seu nome para o certificado: "
+    stdscr.erase()
+    title_attr = curses.color_pair(C_TITLE) | curses.A_BOLD
+    safe_addstr(stdscr, h // 2 - 1, 2, "🎓 Gerando certificado...", title_attr)
+    safe_addstr(stdscr, h // 2 + 1, 2, prompt, curses.color_pair(C_CMD) | curses.A_BOLD)
+    stdscr.refresh()
+
+    curses.curs_set(1)
+    curses.echo()
+    username_bytes = stdscr.getstr(h // 2 + 1, 2 + len(prompt), 60)
+    curses.noecho()
+    curses.curs_set(0)
+    return username_bytes.decode("utf-8", errors="ignore").strip()
+
+
+# ──────────────────────────────────────────────
+# Certificate screen
+# ──────────────────────────────────────────────
+def show_certificate(stdscr, cert_lines: list[str]) -> None:
+    """Display the certificate (read-only, scrollable). Any key exits."""
+    h, w = stdscr.getmaxyx()
+    lines: list[tuple[str, int]] = [("", 0)]
+    for cl in cert_lines:
+        lines.append((cl, curses.color_pair(C_TITLE)))
+    lines.append(("", 0))
+    dim_attr = curses.color_pair(C_DIM) | curses.A_DIM
+    lines.append(("  [ ↑↓ ] rolar    [ qualquer tecla ] voltar", dim_attr))
+
+    offset = 0
+    while True:
+        stdscr.erase()
+        safe_addstr(
+            stdscr,
+            0,
+            0,
+            " 🎓 CERTIFICADO ".center(w - 1),
+            curses.color_pair(C_HEADER) | curses.A_BOLD,
+        )
+        for i, (text, attr) in enumerate(lines[offset:]):
+            row = i + 1
+            if row >= h - 1:
+                break
+            safe_addstr(stdscr, row, 0, text, attr)
+        stdscr.refresh()
+        key = stdscr.getch()
+        if key == curses.KEY_DOWN and offset < len(lines) - (h - 2):
+            offset += 1
+        elif key == curses.KEY_UP and offset > 0:
+            offset -= 1
+        else:
+            break
 
 
 # ──────────────────────────────────────────────

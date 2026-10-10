@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import controller as ctrl_module
 import view
 from model import ProgressRepository, TrilhaRepository
-from service import ChallengeService, ProgressService, TrilhaService
+from service import CertificateService, ChallengeService, ProgressService, TrilhaService
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
@@ -32,7 +32,8 @@ def main(stdscr) -> None:
     progress_repo = ProgressRepository(PROGRESS_PATH)
     progress_service = ProgressService(progress_repo)
     challenge_service = ChallengeService()
-    ctrl = ctrl_module.Controller(service, progress_service, challenge_service)
+    certificate_service = CertificateService()
+    ctrl = ctrl_module.Controller(service, progress_service, challenge_service, certificate_service)
 
     h, w = stdscr.getmaxyx()
     list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)
@@ -70,6 +71,11 @@ def main(stdscr) -> None:
                     concluded = view.show_challenge(stdscr, trilha_atual, challenge_text)
                     if concluded:
                         ctrl.complete_current(trilha_atual)
+                elif action == view.FS_CERTIFICATE:
+                    username = view.ask_username(stdscr)
+                    if username:
+                        cert_lines = ctrl.generate_certificate(trilha_atual, username)
+                        view.show_certificate(stdscr, cert_lines)
 
                 list_win, detail_win, cmd_win, main_h, list_w, detail_w = _rebuild_wins(
                     stdscr, h, w

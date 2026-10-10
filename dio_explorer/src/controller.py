@@ -4,7 +4,7 @@ import curses
 from dataclasses import dataclass, field
 
 from model import Trilha
-from service import ChallengeService, ProgressService, TrilhaService
+from service import CertificateService, ChallengeService, ProgressService, TrilhaService
 
 
 @dataclass
@@ -27,10 +27,12 @@ class Controller:
         service: TrilhaService,
         progress_service: ProgressService,
         challenge_service: ChallengeService,
+        certificate_service: CertificateService,
     ) -> None:
         self._service = service
         self._progress = progress_service
         self._challenge = challenge_service
+        self._certificate = certificate_service
         trilhas = service.all()
         self.state = AppState(
             all_trilhas=trilhas,
@@ -45,6 +47,9 @@ class Controller:
 
     def generate_challenge(self, trilha: Trilha) -> str:
         return self._challenge.generate(trilha)
+
+    def generate_certificate(self, trilha: Trilha, username: str) -> list[str]:
+        return self._certificate.generate(trilha, username)
 
     def toggle_progress(self) -> str:
         trilha = self.current_trilha()
@@ -83,6 +88,18 @@ class Controller:
             s.message = f"⏵ {len(in_progress)} trilha(s) em andamento."
         else:
             s.message = "Nenhuma trilha em andamento. Use Enter para iniciar uma."
+        s.selected = 0
+        s.list_offset = 0
+
+    def apply_certificado_filter(self) -> None:
+        """Show only completed trilhas. Sets message if none exist."""
+        completed = [t for t in self.state.all_trilhas if t["id"] in self.state.completed_ids]
+        s = self.state
+        if completed:
+            s.visible_trilhas = completed
+            s.message = f"🏆 {len(completed)} trilha(s) concluída(s)."
+        else:
+            s.message = "Nenhuma trilha concluída ainda. Complete um desafio primeiro."
         s.selected = 0
         s.list_offset = 0
 
@@ -139,8 +156,12 @@ class Controller:
                 self.apply_filter(arg)
             elif command == "/desafio":
                 self.apply_desafio_filter()
+            elif command == "/certificado":
+                self.apply_certificado_filter()
             else:
-                s.message = f"Unknown command: {command}. Use /trilha [filter] or /desafio"
+                s.message = (
+                    f"Unknown command: {command}. Use /trilha [filter], /desafio or /certificado"
+                )
             s.in_cmd_mode = False
             s.cmd_input = ""
         elif 32 <= key <= 126:

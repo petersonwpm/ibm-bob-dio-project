@@ -1,9 +1,27 @@
 """Service layer — business logic for trilha operations."""
 
+import secrets
 import textwrap
 from dataclasses import dataclass
+from datetime import date
 
 from model import ProgressRepository, Trilha, TrilhaRepository
+
+_MONTHS_PT = [
+    "",
+    "janeiro",
+    "fevereiro",
+    "março",
+    "abril",
+    "maio",
+    "junho",
+    "julho",
+    "agosto",
+    "setembro",
+    "outubro",
+    "novembro",
+    "dezembro",
+]
 
 # ──────────────────────────────────────────────
 # Challenge templates per level
@@ -143,3 +161,63 @@ class ChallengeService:
         technology = trilha["technology"]
         template = _CHALLENGE_TEMPLATES.get(level, _CHALLENGE_TEMPLATES["Iniciante"])
         return template.format(technology=technology)
+
+
+class CertificateService:
+    def generate(self, trilha: Trilha, username: str) -> list[str]:
+        """Return the certificate as a list of lines ready for display."""
+        today = date.today()
+        date_str = f"{today.day:02d} de {_MONTHS_PT[today.month]} de {today.year}"
+        code = "DIO-" + "-".join(secrets.token_hex(2).upper() for _ in range(3))
+        W = 68  # inner width (between ║ and ║)
+        border_top = "╔" + "═" * W + "╗"
+        border_mid = "╠" + "═" * W + "╣"
+        border_bot = "╚" + "═" * W + "╝"
+        blank = "║" + " " * W + "║"
+
+        def row(text: str) -> str:
+            return "║  " + text.ljust(W - 2) + "║"
+
+        def center_row(text: str) -> str:
+            return "║" + text.center(W) + "║"
+
+        badges_lines = [row(f"     🎖️  {b}") for b in trilha["available_badges"]]
+
+        lines = [
+            border_top,
+            blank,
+            center_row("🎓  CERTIFICADO DE CONCLUSÃO  🎓"),
+            center_row("DIO — Digital Innovation One"),
+            blank,
+            border_mid,
+            blank,
+            row("Certificamos que"),
+            blank,
+            center_row(f"✨  {username.upper()}  ✨"),
+            blank,
+            row("concluiu com êxito a trilha de aprendizado:"),
+            blank,
+            row(f"📚  {trilha['name']}"),
+            blank,
+            row(f"Tecnologia: {trilha['technology']}"),
+            row(f"Nível:      {trilha['level']}"),
+            row(f"Módulos:    {trilha['modules']} módulos concluídos"),
+            row(f"XP obtido:  {trilha['total_xp']} XP"),
+            blank,
+            border_mid,
+            blank,
+            row("🏅 Badges conquistados:"),
+            *badges_lines,
+            blank,
+            border_mid,
+            blank,
+            row(f"📅 Data de Emissão: {date_str}"),
+            row(f"🔐 Código de Verificação: {code}"),
+            row(f"🌐 Verifique em: web.dio.me/certificate/{code}"),
+            blank,
+            row("___________________________    ___________________________"),
+            row("Assinatura do Instrutor          Diretor Acadêmico DIO"),
+            blank,
+            border_bot,
+        ]
+        return lines
