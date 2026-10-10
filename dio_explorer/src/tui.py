@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import controller as ctrl_module
 import view
 from model import TrilhaRepository
+from service import TrilhaService
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 
@@ -20,7 +21,8 @@ def main(stdscr) -> None:
     stdscr.keypad(True)
 
     repo = TrilhaRepository(DATA_PATH)
-    ctrl = ctrl_module.Controller(repo)
+    service = TrilhaService(repo)
+    ctrl = ctrl_module.Controller(service)
 
     h, w = stdscr.getmaxyx()
     list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)

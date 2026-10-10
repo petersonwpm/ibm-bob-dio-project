@@ -3,7 +3,8 @@
 import curses
 from dataclasses import dataclass, field
 
-from model import Trilha, TrilhaRepository
+from model import Trilha
+from service import TrilhaService
 
 
 @dataclass
@@ -19,22 +20,19 @@ class AppState:
 
 
 class Controller:
-    def __init__(self, repo: TrilhaRepository) -> None:
-        self._repo = repo
+    def __init__(self, service: TrilhaService) -> None:
+        self._service = service
+        trilhas = service.all()
         self.state = AppState(
-            all_trilhas=repo.all(),
-            visible_trilhas=repo.all(),
+            all_trilhas=trilhas,
+            visible_trilhas=list(trilhas),
         )
 
     def apply_filter(self, query: str) -> None:
-        results = self._repo.search(query)
+        result = self._service.search(query)
         s = self.state
-        if results:
-            s.visible_trilhas = results
-            s.message = f"✔ {len(results)} trilha(s) encontrada(s)."
-        else:
-            s.visible_trilhas = list(s.all_trilhas)
-            s.message = "✘ Nenhuma trilha encontrada. Mostrando todas."
+        s.visible_trilhas = result.trilhas
+        s.message = result.message
         s.selected = 0
         s.list_offset = 0
 

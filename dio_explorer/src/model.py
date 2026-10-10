@@ -35,9 +35,3 @@ class TrilhaRepository:
 
     def all(self) -> list[Trilha]:
         return self._data
-
-    def search(self, query: str) -> list[Trilha]:
-        q = query.lower().strip()
-        if not q:
-            return self._data
-        return [t for t in self._data if q in t["name"].lower() or q in t["technology"].lower()]
