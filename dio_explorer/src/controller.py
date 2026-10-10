@@ -4,7 +4,7 @@ import curses
 from dataclasses import dataclass, field
 
 from model import Trilha
-from service import ProgressService, TrilhaService
+from service import ChallengeService, ProgressService, TrilhaService
 
 
 @dataclass
@@ -12,6 +12,7 @@ class AppState:
     all_trilhas: list[Trilha] = field(default_factory=list)
     visible_trilhas: list[Trilha] = field(default_factory=list)
     in_progress_ids: set[int] = field(default_factory=set)
+    completed_ids: set[int] = field(default_factory=set)
     selected: int = 0
     list_offset: int = 0
     cmd_input: str = ""
@@ -21,35 +22,67 @@ class AppState:
 
 
 class Controller:
-    def __init__(self, service: TrilhaService, progress_service: ProgressService) -> None:
+    def __init__(
+        self,
+        service: TrilhaService,
+        progress_service: ProgressService,
+        challenge_service: ChallengeService,
+    ) -> None:
         self._service = service
         self._progress = progress_service
+        self._challenge = challenge_service
         trilhas = service.all()
         self.state = AppState(
             all_trilhas=trilhas,
             visible_trilhas=list(trilhas),
             in_progress_ids=progress_service.all_ids(),
+            completed_ids=progress_service.all_completed_ids(),
         )
 
     def current_trilha(self) -> Trilha | None:
         s = self.state
         return s.visible_trilhas[s.selected] if s.visible_trilhas else None
 
+    def generate_challenge(self, trilha: Trilha) -> str:
+        return self._challenge.generate(trilha)
+
     def toggle_progress(self) -> str:
-        """Toggle in-progress state of the currently selected trilha. Returns feedback message."""
         trilha = self.current_trilha()
         if not trilha:
             return ""
         msg = self._progress.toggle(trilha["id"])
-        self.state.in_progress_ids = self._progress.all_ids()
+        self._sync_progress_state()
         self.state.message = msg
         return msg
+
+    def complete_current(self, trilha: Trilha) -> str:
+        """Mark the given trilha as completed. Returns feedback message."""
+        msg = self._progress.complete(trilha["id"])
+        self._sync_progress_state()
+        self.state.message = msg
+        return msg
+
+    def _sync_progress_state(self) -> None:
+        self.state.in_progress_ids = self._progress.all_ids()
+        self.state.completed_ids = self._progress.all_completed_ids()
 
     def apply_filter(self, query: str) -> None:
         result = self._service.search(query)
         s = self.state
         s.visible_trilhas = result.trilhas
         s.message = result.message
+        s.selected = 0
+        s.list_offset = 0
+
+    def apply_desafio_filter(self) -> None:
+        """Show only in-progress trilhas. Sets message if none exist."""
+        in_progress = [t for t in self.state.all_trilhas if t["id"] in self.state.in_progress_ids]
+        s = self.state
+        if in_progress:
+            s.visible_trilhas = in_progress
+            s.message = f"⏵ {len(in_progress)} trilha(s) em andamento."
+        else:
+            s.message = "Nenhuma trilha em andamento. Use Enter para iniciar uma."
         s.selected = 0
         s.list_offset = 0
 
@@ -104,8 +137,10 @@ class Controller:
             arg = parts[1] if len(parts) > 1 else ""
             if command == "/trilha":
                 self.apply_filter(arg)
+            elif command == "/desafio":
+                self.apply_desafio_filter()
             else:
-                s.message = f"Unknown command: {command}. Use /trilha [filter]"
+                s.message = f"Unknown command: {command}. Use /trilha [filter] or /desafio"
             s.in_cmd_mode = False
             s.cmd_input = ""
         elif 32 <= key <= 126:

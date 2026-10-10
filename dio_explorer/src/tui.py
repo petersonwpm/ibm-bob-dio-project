@@ -10,10 +10,16 @@ sys.path.insert(0, os.path.dirname(__file__))
 import controller as ctrl_module
 import view
 from model import ProgressRepository, TrilhaRepository
-from service import ProgressService, TrilhaService
+from service import ChallengeService, ProgressService, TrilhaService
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
+
+
+def _rebuild_wins(stdscr, h: int, w: int):
+    stdscr.clear()
+    stdscr.refresh()
+    return view.make_wins(h, w)
 
 
 def main(stdscr) -> None:
@@ -25,7 +31,8 @@ def main(stdscr) -> None:
     service = TrilhaService(repo)
     progress_repo = ProgressRepository(PROGRESS_PATH)
     progress_service = ProgressService(progress_repo)
-    ctrl = ctrl_module.Controller(service, progress_service)
+    challenge_service = ChallengeService()
+    ctrl = ctrl_module.Controller(service, progress_service, challenge_service)
 
     h, w = stdscr.getmaxyx()
     list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)
@@ -48,13 +55,25 @@ def main(stdscr) -> None:
         if not ctrl.state.in_cmd_mode and key in (ord("\n"), curses.KEY_ENTER):
             trilha_atual = ctrl.current_trilha()
             if trilha_atual:
-                in_progress = trilha_atual["id"] in ctrl.state.in_progress_ids
-                toggled = view.show_fullscreen(stdscr, trilha_atual, in_progress=in_progress)
-                if toggled:
+                tid = trilha_atual["id"]
+                in_progress = tid in ctrl.state.in_progress_ids
+                completed = tid in ctrl.state.completed_ids
+
+                action = view.show_fullscreen(
+                    stdscr, trilha_atual, in_progress=in_progress, completed=completed
+                )
+
+                if action == view.FS_TOGGLE:
                     ctrl.toggle_progress()
-                stdscr.clear()
-                stdscr.refresh()
-                list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)
+                elif action == view.FS_CHALLENGE:
+                    challenge_text = ctrl.generate_challenge(trilha_atual)
+                    concluded = view.show_challenge(stdscr, trilha_atual, challenge_text)
+                    if concluded:
+                        ctrl.complete_current(trilha_atual)
+
+                list_win, detail_win, cmd_win, main_h, list_w, detail_w = _rebuild_wins(
+                    stdscr, h, w
+                )
         else:
             if not ctrl.handle_key(key, main_h - 2):
                 break

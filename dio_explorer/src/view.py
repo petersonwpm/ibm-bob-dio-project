@@ -61,19 +61,26 @@ def draw_list(
     selected: int,
     offset: int,
     in_progress_ids: set[int] | None = None,
+    completed_ids: set[int] | None = None,
 ) -> None:
     h, w = win.getmaxyx()
     win.erase()
     header_attr = curses.color_pair(C_HEADER) | curses.A_BOLD
     safe_addstr(win, 0, 0, " TRILHAS DIO ".center(w - 1), header_attr)
     visible = h - 2
-    ids = in_progress_ids or set()
+    prog_ids = in_progress_ids or set()
+    done_ids = completed_ids or set()
     for i, t in enumerate(trilhas[offset : offset + visible]):
         idx = offset + i
         row = i + 1
         level_icon = {"Iniciante": "●", "Intermediário": "◆", "Avançado": "★"}.get(t["level"], "·")
-        progress_icon = "⏵" if t["id"] in ids else " "
-        text = f" {level_icon}{progress_icon}{t['name']}"
+        if t["id"] in done_ids:
+            status_icon = "✔"
+        elif t["id"] in prog_ids:
+            status_icon = "⏵"
+        else:
+            status_icon = " "
+        text = f" {level_icon}{status_icon}{t['name']}"
         if idx == selected:
             sel_attr = curses.color_pair(C_SELECTED) | curses.A_BOLD
             safe_addstr(win, row, 0, text.ljust(w - 1), sel_attr)
@@ -167,8 +174,25 @@ def draw_cmdbar(win, prompt: str, cmd_input: str, message: str) -> None:
 # ──────────────────────────────────────────────
 # Fullscreen detail overlay
 # ──────────────────────────────────────────────
-def show_fullscreen(stdscr, trilha: Trilha, in_progress: bool = False) -> bool:
-    """Display full trilha detail. Returns True if the user pressed 's' to toggle progress."""
+# Return values for show_fullscreen
+FS_BACK = "back"
+FS_TOGGLE = "toggle"
+FS_CHALLENGE = "challenge"
+
+
+def show_fullscreen(
+    stdscr,
+    trilha: Trilha,
+    in_progress: bool = False,
+    completed: bool = False,
+) -> str:
+    """Display full trilha detail.
+
+    Returns:
+        FS_TOGGLE    — user pressed 's' (toggle in-progress)
+        FS_CHALLENGE — user pressed 'd' (open challenge, only when in_progress)
+        FS_BACK      — user exited
+    """
     stdscr.clear()
     h, w = stdscr.getmaxyx()
     lines: list[tuple[str, int]] = []
@@ -202,9 +226,12 @@ def show_fullscreen(stdscr, trilha: Trilha, in_progress: bool = False) -> bool:
 
     action_attr = curses.color_pair(C_CMD) | curses.A_BOLD
     dim_attr = curses.color_pair(C_DIM) | curses.A_DIM
-    if in_progress:
+    if completed:
+        lines.append(("  ✔ Trilha concluída!", curses.color_pair(C_PROMO) | curses.A_BOLD))
+        lines.append(("  [ Esc / q ] voltar", dim_attr))
+    elif in_progress:
         lines.append(("  ⏵ Trilha em andamento", curses.color_pair(C_PROMO) | curses.A_BOLD))
-        lines.append(("  [ S ] remover do progresso    [ Esc / q ] voltar", action_attr))
+        lines.append(("  [ D ] ver desafio    [ S ] remover    [ Esc / q ] voltar", action_attr))
     else:
         lines.append(("  [ S ] iniciar trilha    [ Esc / q ] voltar", action_attr))
     lines.append(("", dim_attr))
@@ -221,9 +248,51 @@ def show_fullscreen(stdscr, trilha: Trilha, in_progress: bool = False) -> bool:
             safe_addstr(stdscr, row, 0, text, attr)
         stdscr.refresh()
         key = stdscr.getch()
-        if key in (ord("s"), ord("S")):
-            return True
+        if key in (ord("s"), ord("S")) and not completed:
+            return FS_TOGGLE
+        elif key in (ord("d"), ord("D")) and in_progress and not completed:
+            return FS_CHALLENGE
         elif key in (ord("q"), 27, ord("\n"), curses.KEY_BACKSPACE):
+            break
+        elif key == curses.KEY_DOWN and offset < len(lines) - (h - 2):
+            offset += 1
+        elif key == curses.KEY_UP and offset > 0:
+            offset -= 1
+    return FS_BACK
+
+
+# ──────────────────────────────────────────────
+# Challenge screen
+# ──────────────────────────────────────────────
+def show_challenge(stdscr, trilha: Trilha, challenge_text: str) -> bool:
+    """Display the challenge for a trilha.
+
+    Returns True if the user pressed 'c' to mark it as completed.
+    """
+    h, w = stdscr.getmaxyx()
+    header = f" ⚔️  DESAFIO — {trilha['name']} ".center(w - 1)
+    lines: list[tuple[str, int]] = [("", 0)]
+    for raw_line in challenge_text.splitlines():
+        lines.append((f"  {raw_line}", 0))
+    lines.append(("", 0))
+    action_attr = curses.color_pair(C_CMD) | curses.A_BOLD
+    lines.append(("  [ C ] concluir desafio    [ Esc / q ] voltar", action_attr))
+    lines.append(("", 0))
+
+    offset = 0
+    while True:
+        stdscr.erase()
+        safe_addstr(stdscr, 0, 0, header, curses.color_pair(C_HEADER) | curses.A_BOLD)
+        for i, (text, attr) in enumerate(lines[offset:]):
+            row = i + 1
+            if row >= h - 1:
+                break
+            safe_addstr(stdscr, row, 0, text, attr)
+        stdscr.refresh()
+        key = stdscr.getch()
+        if key in (ord("c"), ord("C")):
+            return True
+        elif key in (ord("q"), 27, curses.KEY_BACKSPACE):
             break
         elif key == curses.KEY_DOWN and offset < len(lines) - (h - 2):
             offset += 1
@@ -261,7 +330,12 @@ def redraw(  # noqa: PLR0913
 ) -> None:
     trilha_atual = state.visible_trilhas[state.selected] if state.visible_trilhas else None
     draw_list(
-        list_win, state.visible_trilhas, state.selected, state.list_offset, state.in_progress_ids
+        list_win,
+        state.visible_trilhas,
+        state.selected,
+        state.list_offset,
+        state.in_progress_ids,
+        state.completed_ids,
     )
     draw_detail(detail_win, trilha_atual)
     draw_cmdbar(

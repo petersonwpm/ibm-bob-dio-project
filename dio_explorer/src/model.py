@@ -40,29 +40,52 @@ class TrilhaRepository:
 class ProgressRepository:
     def __init__(self, path: str) -> None:
         self._path = path
-        self._data: set[int] = self._load()
+        raw = self._load_raw()
+        self._in_progress: set[int] = set(raw.get("in_progress", []))
+        self._completed: set[int] = set(raw.get("completed", []))
 
-    def _load(self) -> set[int]:
+    def _load_raw(self) -> dict:
         try:
             with open(self._path, encoding="utf-8") as f:
-                return set(json.load(f).get("in_progress", []))
+                return json.load(f)
         except FileNotFoundError:
-            return set()
+            return {}
 
     def _save(self) -> None:
         with open(self._path, "w", encoding="utf-8") as f:
-            json.dump({"in_progress": sorted(self._data)}, f, indent=2)
+            json.dump(
+                {
+                    "in_progress": sorted(self._in_progress),
+                    "completed": sorted(self._completed),
+                },
+                f,
+                indent=2,
+            )
 
+    # ── in_progress ──
     def all_ids(self) -> set[int]:
-        return set(self._data)
+        return set(self._in_progress)
 
     def is_in_progress(self, trilha_id: int) -> bool:
-        return trilha_id in self._data
+        return trilha_id in self._in_progress
 
     def add(self, trilha_id: int) -> None:
-        self._data.add(trilha_id)
+        self._in_progress.add(trilha_id)
         self._save()
 
     def remove(self, trilha_id: int) -> None:
-        self._data.discard(trilha_id)
+        self._in_progress.discard(trilha_id)
+        self._save()
+
+    # ── completed ──
+    def all_completed_ids(self) -> set[int]:
+        return set(self._completed)
+
+    def is_completed(self, trilha_id: int) -> bool:
+        return trilha_id in self._completed
+
+    def complete(self, trilha_id: int) -> None:
+        """Move a trilha from in_progress to completed (irreversible)."""
+        self._in_progress.discard(trilha_id)
+        self._completed.add(trilha_id)
         self._save()
