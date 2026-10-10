@@ -27,6 +27,7 @@ def main(stdscr) -> None:
     h, w = stdscr.getmaxyx()
     list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)
 
+    stdscr.refresh()
     view.redraw(stdscr, list_win, detail_win, cmd_win, main_h, list_w, detail_w, ctrl.state)
 
     while True:
