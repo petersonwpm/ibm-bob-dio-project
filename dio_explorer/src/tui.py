@@ -90,7 +90,7 @@ def draw_list(win, trilhas: list[dict], selected: int, offset: int) -> None:
             safe_addstr(win, row, 0, text.ljust(w - 1), curses.color_pair(C_NORMAL))
     counter = f" {selected + 1}/{len(trilhas)} ".ljust(w - 1)
     safe_addstr(win, h - 1, 0, counter, curses.color_pair(C_DIM) | curses.A_DIM)
-    win.refresh()
+    win.noutrefresh()
 
 
 # ──────────────────────────────────────────────
@@ -103,7 +103,7 @@ def draw_detail(win, trilha: dict | None) -> None:
 
     if not trilha:
         safe_addstr(win, 2, 2, "Nenhuma trilha encontrada.", curses.color_pair(C_DIM))
-        win.refresh()
+        win.noutrefresh()
         return
 
     row = 1
@@ -153,7 +153,7 @@ def draw_detail(win, trilha: dict | None) -> None:
     else:
         line("  Sem promoção ativa.", curses.color_pair(C_DIM) | curses.A_DIM)
 
-    win.refresh()
+    win.noutrefresh()
 
 
 # ──────────────────────────────────────────────
@@ -170,7 +170,7 @@ def draw_cmdbar(win, prompt: str, cmd_input: str, message: str) -> None:
         safe_addstr(win, 2, 0, message[: w - 1], curses.color_pair(C_CMD) | curses.A_BOLD)
     else:
         safe_addstr(win, 2, 0, input_line[: w - 1], curses.color_pair(C_CMD) | curses.A_BOLD)
-    win.refresh()
+    win.noutrefresh()
 
 
 # ──────────────────────────────────────────────
@@ -233,6 +233,45 @@ def show_fullscreen(stdscr, trilha: dict) -> None:
 # ──────────────────────────────────────────────
 # Loop principal
 # ──────────────────────────────────────────────
+def _make_wins(h: int, w: int) -> tuple:
+    list_w = max(30, w // 2)
+    detail_w = w - list_w
+    cmd_h = 4
+    main_h = h - cmd_h
+    list_win = curses.newwin(main_h, list_w, 0, 0)
+    detail_win = curses.newwin(main_h, detail_w, 0, list_w)
+    cmd_win = curses.newwin(cmd_h, w, main_h, 0)
+    return list_win, detail_win, cmd_win, main_h, list_w, detail_w
+
+
+def _redraw(  # noqa: PLR0913
+    stdscr,
+    list_win,
+    detail_win,
+    cmd_win,
+    main_h,
+    list_w,
+    detail_w,
+    visible_trilhas,
+    selected,
+    list_offset,
+    in_cmd_mode,
+    cmd_input,
+    prompt,
+    message,
+) -> None:
+    trilha_atual = visible_trilhas[selected] if visible_trilhas else None
+    draw_list(list_win, visible_trilhas, selected, list_offset)
+    draw_detail(detail_win, trilha_atual)
+    draw_cmdbar(cmd_win, prompt, cmd_input if in_cmd_mode else "", message)
+    if in_cmd_mode:
+        curses.curs_set(1)
+        cmd_win.move(2, len(prompt) + len(cmd_input))
+    else:
+        curses.curs_set(0)
+    curses.doupdate()
+
+
 def main(stdscr) -> None:
     curses.curs_set(0)
     init_colors()
@@ -248,33 +287,40 @@ def main(stdscr) -> None:
     message = ""
     in_cmd_mode = False
 
+    h, w = stdscr.getmaxyx()
+    list_win, detail_win, cmd_win, main_h, list_w, detail_w = _make_wins(h, w)
+
+    # desenha antes do primeiro getch para não precisar de keypress inicial
+    _redraw(
+        stdscr,
+        list_win,
+        detail_win,
+        cmd_win,
+        main_h,
+        list_w,
+        detail_w,
+        visible_trilhas,
+        selected,
+        list_offset,
+        in_cmd_mode,
+        cmd_input,
+        prompt,
+        message,
+    )
+
     while True:
-        h, w = stdscr.getmaxyx()
-
-        list_w = max(30, w // 2)
-        detail_w = w - list_w
-        cmd_h = 4
-        main_h = h - cmd_h
-
-        list_win = curses.newwin(main_h, list_w, 0, 0)
-        detail_win = curses.newwin(main_h, detail_w, 0, list_w)
-        cmd_win = curses.newwin(cmd_h, w, main_h, 0)
-
-        trilha_atual = visible_trilhas[selected] if visible_trilhas else None
-
-        draw_list(list_win, visible_trilhas, selected, list_offset)
-        draw_detail(detail_win, trilha_atual)
-        draw_cmdbar(cmd_win, prompt, cmd_input if in_cmd_mode else "", message)
-
-        if in_cmd_mode:
-            curses.curs_set(1)
-            cmd_win.move(2, len(prompt) + len(cmd_input))
-            cmd_win.refresh()
-        else:
-            curses.curs_set(0)
-
         key = stdscr.getch()
         message = ""
+
+        # recria janelas se o terminal foi redimensionado
+        new_h, new_w = stdscr.getmaxyx()
+        if new_h != h or new_w != w:
+            h, w = new_h, new_w
+            list_win, detail_win, cmd_win, main_h, list_w, detail_w = _make_wins(h, w)
+            stdscr.clear()
+            stdscr.refresh()
+
+        trilha_atual = visible_trilhas[selected] if visible_trilhas else None
 
         # ── navegação ──
         if not in_cmd_mode:
@@ -296,6 +342,10 @@ def main(stdscr) -> None:
             elif key in (ord("\n"), curses.KEY_ENTER):
                 if trilha_atual:
                     show_fullscreen(stdscr, trilha_atual)
+                    # força redesenho completo ao voltar do fullscreen
+                    stdscr.clear()
+                    stdscr.refresh()
+                    list_win, detail_win, cmd_win, main_h, list_w, detail_w = _make_wins(h, w)
             elif key == 27:  # ESC — limpa filtro
                 visible_trilhas = list(all_trilhas)
                 selected = 0
@@ -333,6 +383,23 @@ def main(stdscr) -> None:
                 cmd_input = ""
             elif 32 <= key <= 126:
                 cmd_input += chr(key)
+
+        _redraw(
+            stdscr,
+            list_win,
+            detail_win,
+            cmd_win,
+            main_h,
+            list_w,
+            detail_w,
+            visible_trilhas,
+            selected,
+            list_offset,
+            in_cmd_mode,
+            cmd_input,
+            prompt,
+            message,
+        )
 
 
 def run() -> None:
