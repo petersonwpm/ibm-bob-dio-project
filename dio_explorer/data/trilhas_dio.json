@@ -1,0 +1,575 @@
+{
+  "trilhas": [
+    {
+      "id": 1,
+      "name": "Fundamentos de Python para Iniciantes",
+      "technology": "Python",
+      "level": "Iniciante",
+      "modules": 8,
+      "total_xp": 1200,
+      "available_badges": ["Explorador Python", "Coder Novato", "Lógica em Ação"],
+      "promotions": {
+        "discount": "30%",
+        "valid_until": "2025-12-31",
+        "description": "Promoção de fim de ano para novos alunos"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Introdução ao Python com especialistas", "date": "2025-02-10" },
+        { "title": "Dicas de carreira para devs Python", "date": "2025-03-15" }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Desenvolvimento Web Full Stack com JavaScript",
+      "technology": "JavaScript",
+      "level": "Intermediário",
+      "modules": 15,
+      "total_xp": 3500,
+      "available_badges": ["Full Stack Hero", "JS Master", "DOM Ninja", "API Builder"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-11-30",
+        "description": "Desconto especial para assinantes premium"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Construindo APIs REST com Node.js", "date": "2025-01-20" },
+        { "title": "React na prática: criando interfaces modernas", "date": "2025-02-28" },
+        { "title": "Autenticação JWT do zero", "date": "2025-04-05" }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Machine Learning com Scikit-Learn",
+      "technology": "Python / ML",
+      "level": "Avançado",
+      "modules": 12,
+      "total_xp": 4800,
+      "available_badges": ["Data Scientist", "ML Explorer", "Algoritmos Inteligentes"],
+      "promotions": {
+        "discount": "15%",
+        "valid_until": "2025-09-30",
+        "description": "Oferta relâmpago para os primeiros 500 inscritos"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Regressão Linear na prática", "date": "2025-03-01" },
+        { "title": "Como preparar dados para modelos de ML", "date": "2025-04-12" }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "DevOps e CI/CD com GitHub Actions",
+      "technology": "DevOps / GitHub",
+      "level": "Intermediário",
+      "modules": 10,
+      "total_xp": 2800,
+      "available_badges": ["Pipeline Pro", "DevOps Starter", "Automação Total"],
+      "promotions": {
+        "discount": "25%",
+        "valid_until": "2025-10-15",
+        "description": "Semana do DevOps com desconto exclusivo"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "CI/CD com GitHub Actions do zero", "date": "2025-02-05" }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Desenvolvimento Mobile com Flutter",
+      "technology": "Flutter / Dart",
+      "level": "Intermediário",
+      "modules": 14,
+      "total_xp": 3200,
+      "available_badges": ["Mobile Dev", "Flutter Wizard", "App Creator"],
+      "promotions": {
+        "discount": "10%",
+        "valid_until": "2025-08-31",
+        "description": "Desconto para alunos que já concluíram outra trilha"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Criando seu primeiro app Flutter", "date": "2025-01-15" },
+        { "title": "Integração com Firebase no Flutter", "date": "2025-03-20" }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Cloud Computing com AWS",
+      "technology": "AWS",
+      "level": "Avançado",
+      "modules": 18,
+      "total_xp": 5500,
+      "available_badges": ["Cloud Architect", "AWS Practitioner", "Serverless Hero", "S3 Expert"],
+      "promotions": {
+        "discount": "35%",
+        "valid_until": "2025-07-31",
+        "description": "Parceria DIO + AWS com desconto especial"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Fundamentos de Cloud com AWS", "date": "2025-02-18" },
+        { "title": "Criando funções Lambda do zero", "date": "2025-03-10" },
+        { "title": "Segurança na AWS: IAM e Políticas", "date": "2025-04-22" }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Banco de Dados SQL e NoSQL",
+      "technology": "SQL / MongoDB",
+      "level": "Iniciante",
+      "modules": 9,
+      "total_xp": 1800,
+      "available_badges": ["DBA Novato", "Query Master", "NoSQL Explorer"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-06-30",
+        "description": "Promoção de meio de ano"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "SQL do zero ao avançado", "date": "2025-01-28" },
+        { "title": "MongoDB para desenvolvedores", "date": "2025-02-22" }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Segurança da Informação e Ethical Hacking",
+      "technology": "Cybersecurity",
+      "level": "Avançado",
+      "modules": 16,
+      "total_xp": 5200,
+      "available_badges": ["Ethical Hacker", "Pen Tester", "Segurança em Foco", "OWASP Expert"],
+      "promotions": {
+        "discount": "0%",
+        "valid_until": null,
+        "description": "Sem promoção ativa no momento"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Introdução ao Ethical Hacking", "date": "2025-03-05" },
+        { "title": "OWASP Top 10 na prática", "date": "2025-04-18" }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Inteligência Artificial Generativa com LLMs",
+      "technology": "IA Generativa / Python",
+      "level": "Avançado",
+      "modules": 13,
+      "total_xp": 6000,
+      "available_badges": ["AI Builder", "Prompt Engineer", "LLM Master", "GenAI Pioneer"],
+      "promotions": {
+        "discount": "40%",
+        "valid_until": "2025-05-31",
+        "description": "Lançamento da trilha com super desconto"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Como funcionam os LLMs", "date": "2025-01-10" },
+        { "title": "Criando chatbots com LangChain", "date": "2025-02-14" },
+        { "title": "Fine-tuning de modelos open source", "date": "2025-03-30" }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Desenvolvimento de APIs com Java e Spring Boot",
+      "technology": "Java / Spring Boot",
+      "level": "Intermediário",
+      "modules": 11,
+      "total_xp": 3000,
+      "available_badges": ["Java Dev", "Spring Master", "REST API Pro"],
+      "promotions": {
+        "discount": "15%",
+        "valid_until": "2025-09-15",
+        "description": "Desconto para certificados em Java"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Spring Boot na prática: CRUD completo", "date": "2025-02-07" },
+        { "title": "Testes unitários com JUnit e Mockito", "date": "2025-03-25" }
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Containerização com Docker e Kubernetes",
+      "technology": "Docker / Kubernetes",
+      "level": "Intermediário",
+      "modules": 12,
+      "total_xp": 3400,
+      "available_badges": ["Container Wizard", "K8s Explorer", "Orquestrador"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-10-31",
+        "description": "Promoção especial para devs que já têm trilha DevOps"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Docker do zero ao deploy", "date": "2025-01-30" },
+        { "title": "Kubernetes em produção: boas práticas", "date": "2025-03-18" }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Desenvolvimento de Games com Unity",
+      "technology": "Unity / C#",
+      "level": "Iniciante",
+      "modules": 10,
+      "total_xp": 2200,
+      "available_badges": ["Game Dev", "Unity Starter", "Level Designer"],
+      "promotions": {
+        "discount": "30%",
+        "valid_until": "2025-07-15",
+        "description": "Promoção Games Fest DIO"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Criando seu primeiro jogo 2D com Unity", "date": "2025-02-12" }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Blockchain e Web3 com Solidity",
+      "technology": "Blockchain / Solidity",
+      "level": "Avançado",
+      "modules": 14,
+      "total_xp": 5000,
+      "available_badges": ["Blockchain Dev", "Smart Contract Expert", "Web3 Pioneer"],
+      "promotions": {
+        "discount": "25%",
+        "valid_until": "2025-11-15",
+        "description": "Desconto especial Web3 Summit"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Criando Smart Contracts com Solidity", "date": "2025-03-08" },
+        { "title": "DeFi: conceitos e implementação", "date": "2025-04-20" }
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Data Engineering com Apache Spark",
+      "technology": "Apache Spark / Python",
+      "level": "Avançado",
+      "modules": 15,
+      "total_xp": 5800,
+      "available_badges": ["Data Engineer", "Spark Master", "Pipeline Builder", "Big Data Hero"],
+      "promotions": {
+        "discount": "0%",
+        "valid_until": null,
+        "description": "Sem promoção ativa no momento"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Processamento distribuído com Spark", "date": "2025-02-25" },
+        { "title": "ETL moderno com PySpark", "date": "2025-04-01" }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "UX/UI Design para Desenvolvedores",
+      "technology": "Figma / Design",
+      "level": "Iniciante",
+      "modules": 7,
+      "total_xp": 1500,
+      "available_badges": ["UX Explorer", "Design Thinker", "Prototipador"],
+      "promotions": {
+        "discount": "50%",
+        "valid_until": "2025-06-15",
+        "description": "Promoção especial para quem se inscrever em dupla"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Design Systems com Figma", "date": "2025-01-22" },
+        { "title": "Como criar wireframes profissionais", "date": "2025-03-12" }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Microsserviços com Go Lang",
+      "technology": "Go",
+      "level": "Avançado",
+      "modules": 13,
+      "total_xp": 4500,
+      "available_badges": ["Gopher", "Microsserviços Pro", "Concorrência Master"],
+      "promotions": {
+        "discount": "10%",
+        "valid_until": "2025-08-20",
+        "description": "Desconto para comunidade Go Brasil"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Go Lang do zero: sintaxe e concorrência", "date": "2025-02-03" },
+        { "title": "Construindo microsserviços com Go e gRPC", "date": "2025-04-10" }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Análise de Dados com Power BI",
+      "technology": "Power BI",
+      "level": "Intermediário",
+      "modules": 9,
+      "total_xp": 2400,
+      "available_badges": ["Data Analyst", "BI Explorer", "Dashboard Pro"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-09-01",
+        "description": "Promoção de lançamento da nova versão da trilha"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Power BI na prática: do zero ao dashboard", "date": "2025-01-18" },
+        { "title": "DAX avançado para analistas", "date": "2025-03-22" }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Automação com RPA e Python",
+      "technology": "Python / RPA",
+      "level": "Intermediário",
+      "modules": 8,
+      "total_xp": 2600,
+      "available_badges": ["Automation Dev", "RPA Pioneer", "Bot Builder"],
+      "promotions": {
+        "discount": "15%",
+        "valid_until": "2025-10-10",
+        "description": "Desconto para empresas parceiras DIO"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Automatizando tarefas com Selenium e Python", "date": "2025-02-20" }
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Fundamentos de Redes e Infraestrutura",
+      "technology": "Redes / Linux",
+      "level": "Iniciante",
+      "modules": 10,
+      "total_xp": 1900,
+      "available_badges": ["Network Explorer", "Linux User", "Infra Starter"],
+      "promotions": {
+        "discount": "25%",
+        "valid_until": "2025-07-01",
+        "description": "Promoção especial para carreiras em TI"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Linux do zero: comandos essenciais", "date": "2025-01-25" },
+        { "title": "Redes de computadores na prática", "date": "2025-03-14" }
+      ]
+    },
+    {
+      "id": 20,
+      "name": "TypeScript Avançado para Front-End",
+      "technology": "TypeScript",
+      "level": "Avançado",
+      "modules": 11,
+      "total_xp": 3800,
+      "available_badges": ["TS Expert", "Type Safe Dev", "Front-End Ninja"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-11-01",
+        "description": "Combo com trilha de JavaScript com desconto adicional"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "TypeScript avançado: generics e decorators", "date": "2025-02-16" },
+        { "title": "Padrões de projeto com TypeScript", "date": "2025-04-08" }
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Engenharia de Prompts para IA",
+      "technology": "IA / Prompt Engineering",
+      "level": "Iniciante",
+      "modules": 6,
+      "total_xp": 1400,
+      "available_badges": ["Prompt Crafter", "AI Communicator", "LLM Whisperer"],
+      "promotions": {
+        "discount": "45%",
+        "valid_until": "2025-05-20",
+        "description": "Super promoção de lançamento"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Como criar prompts eficientes para ChatGPT", "date": "2025-01-12" },
+        { "title": "Prompt Engineering para desenvolvedores", "date": "2025-02-26" }
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Desenvolvimento iOS com Swift",
+      "technology": "Swift / iOS",
+      "level": "Intermediário",
+      "modules": 13,
+      "total_xp": 3600,
+      "available_badges": ["iOS Dev", "Swift Coder", "App Store Ready"],
+      "promotions": {
+        "discount": "10%",
+        "valid_until": "2025-08-05",
+        "description": "Desconto para usuários Apple Developer"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "SwiftUI: construindo interfaces nativas", "date": "2025-03-03" },
+        { "title": "Publicando seu app na App Store", "date": "2025-04-15" }
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Azure para Desenvolvedores",
+      "technology": "Microsoft Azure",
+      "level": "Intermediário",
+      "modules": 16,
+      "total_xp": 4200,
+      "available_badges": ["Azure Fundamentals", "Cloud Dev", "Azure AI Explorer"],
+      "promotions": {
+        "discount": "30%",
+        "valid_until": "2025-09-20",
+        "description": "Parceria Microsoft + DIO com desconto especial"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Azure do zero: serviços essenciais", "date": "2025-01-08" },
+        { "title": "Deploy de aplicações na Azure", "date": "2025-02-19" },
+        { "title": "Azure Cognitive Services na prática", "date": "2025-04-03" }
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Programação Funcional com Haskell",
+      "technology": "Haskell",
+      "level": "Avançado",
+      "modules": 10,
+      "total_xp": 4400,
+      "available_badges": ["Functional Thinker", "Haskell Hacker", "Monad Master"],
+      "promotions": {
+        "discount": "0%",
+        "valid_until": null,
+        "description": "Sem promoção ativa no momento"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Introdução à programação funcional com Haskell", "date": "2025-03-17" }
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Desenvolvimento com Rust",
+      "technology": "Rust",
+      "level": "Avançado",
+      "modules": 12,
+      "total_xp": 4700,
+      "available_badges": ["Rustacean", "Memory Safe", "Systems Programmer"],
+      "promotions": {
+        "discount": "15%",
+        "valid_until": "2025-10-25",
+        "description": "Desconto especial para devs de sistemas"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Por que Rust é o futuro dos sistemas", "date": "2025-02-08" },
+        { "title": "Ownership e Borrowing em Rust", "date": "2025-03-28" }
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Gestão Ágil com Scrum e Kanban",
+      "technology": "Gestão / Agile",
+      "level": "Iniciante",
+      "modules": 6,
+      "total_xp": 1100,
+      "available_badges": ["Scrum Practitioner", "Agile Starter", "Kanban Expert"],
+      "promotions": {
+        "discount": "35%",
+        "valid_until": "2025-06-10",
+        "description": "Promoção para gestores e líderes técnicos"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Scrum na prática com times de tecnologia", "date": "2025-01-16" },
+        { "title": "Kanban para projetos de software", "date": "2025-02-27" }
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Análise e Visualização de Dados com Python",
+      "technology": "Python / Pandas / Matplotlib",
+      "level": "Intermediário",
+      "modules": 11,
+      "total_xp": 2900,
+      "available_badges": ["Data Viz Pro", "Pandas Expert", "Analista de Dados"],
+      "promotions": {
+        "discount": "20%",
+        "valid_until": "2025-08-15",
+        "description": "Desconto combinado com trilha de Machine Learning"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Pandas do zero ao avançado", "date": "2025-01-29" },
+        { "title": "Visualizações profissionais com Matplotlib e Seaborn", "date": "2025-03-06" }
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Desenvolvimento Back-End com PHP e Laravel",
+      "technology": "PHP / Laravel",
+      "level": "Intermediário",
+      "modules": 12,
+      "total_xp": 3100,
+      "available_badges": ["PHP Dev", "Laravel Artisan", "MVC Master"],
+      "promotions": {
+        "discount": "15%",
+        "valid_until": "2025-09-10",
+        "description": "Desconto para comunidade PHP Brasil"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Laravel do zero: CRUD e autenticação", "date": "2025-02-04" },
+        { "title": "APIs RESTful com Laravel e Sanctum", "date": "2025-04-06" }
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Computação Quântica para Desenvolvedores",
+      "technology": "Qiskit / Python",
+      "level": "Avançado",
+      "modules": 9,
+      "total_xp": 6500,
+      "available_badges": ["Quantum Explorer", "Qubit Master", "Quantum Pioneer", "IBM Q Certified"],
+      "promotions": {
+        "discount": "50%",
+        "valid_until": "2025-05-10",
+        "description": "Promoção de lançamento exclusiva"
+      },
+      "lifetime": true,
+      "lives": [
+        { "title": "Introdução à computação quântica com Qiskit", "date": "2025-01-14" },
+        { "title": "Algoritmos quânticos na prática", "date": "2025-03-26" },
+        { "title": "O futuro da computação: quantum vs clássico", "date": "2025-04-28" }
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Inteligência Artificial Aplicada ao Negócio",
+      "technology": "IA / Business",
+      "level": "Iniciante",
+      "modules": 7,
+      "total_xp": 1600,
+      "available_badges": ["AI Business Leader", "Transformação Digital", "Tech Manager"],
+      "promotions": {
+        "discount": "30%",
+        "valid_until": "2025-07-20",
+        "description": "Desconto especial para gestores e empreendedores"
+      },
+      "lifetime": false,
+      "lives": [
+        { "title": "Como a IA está transformando os negócios", "date": "2025-02-11" },
+        { "title": "Estratégias de adoção de IA nas empresas", "date": "2025-03-31" }
+      ]
+    }
+  ]
+}

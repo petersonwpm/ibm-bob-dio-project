@@ -1,0 +1,12 @@
+# Dependências
+node_modules/
+
+# Cache de dados
+data/cache/
+
+# Certificados emitidos
+docs/certificados-emitidos/
+
+# Arquivos temporários
+*.tmp
+.venv/
