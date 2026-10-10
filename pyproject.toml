@@ -7,6 +7,10 @@ dependencies = [
   "mcp[cli]>=2.3.0",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["dio_explorer/src"]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
