@@ -254,4 +254,5 @@ def redraw(  # noqa: PLR0913
         cmd_win.move(2, len(state.prompt) + len(state.cmd_input))
     else:
         curses.curs_set(0)
+    stdscr.noutrefresh()
     curses.doupdate()
