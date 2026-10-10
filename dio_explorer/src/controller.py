@@ -48,8 +48,20 @@ class Controller:
     def generate_challenge(self, trilha: Trilha) -> str:
         return self._challenge.generate(trilha)
 
-    def generate_certificate(self, trilha: Trilha, username: str) -> list[str]:
-        return self._certificate.generate(trilha, username)
+    def get_certificate(self, trilha: Trilha, username: str) -> tuple[list[str], bool]:
+        """Return (cert_lines, from_cache).
+
+        Loads an existing certificate if one was already issued for this trilha.
+        Generates and persists a new one otherwise.
+        """
+        cached = self._certificate.load(trilha["id"])
+        if cached is not None:
+            return cached, True
+        return self._certificate.generate(trilha, username), False
+
+    def has_certificate(self, trilha_id: int) -> bool:
+        """Return True if a certificate has already been issued for this trilha."""
+        return self._certificate.load(trilha_id) is not None
 
     def toggle_progress(self) -> str:
         trilha = self.current_trilha()

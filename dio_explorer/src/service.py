@@ -1,9 +1,11 @@
 """Service layer — business logic for trilha operations."""
 
+import json
 import secrets
 import textwrap
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 from model import ProgressRepository, Trilha, TrilhaRepository
 
@@ -164,8 +166,22 @@ class ChallengeService:
 
 
 class CertificateService:
+    def __init__(self, dir_path: str) -> None:
+        self._dir = Path(dir_path)
+        self._dir.mkdir(parents=True, exist_ok=True)
+
+    def _cert_path(self, trilha_id: int) -> Path:
+        return self._dir / f"certificado_trilha_{trilha_id}.json"
+
+    def load(self, trilha_id: int) -> list[str] | None:
+        """Return saved certificate lines, or None if not yet generated."""
+        path = self._cert_path(trilha_id)
+        if path.exists():
+            return json.loads(path.read_text(encoding="utf-8"))
+        return None
+
     def generate(self, trilha: Trilha, username: str) -> list[str]:
-        """Return the certificate as a list of lines ready for display."""
+        """Generate, persist and return the certificate lines."""
         today = date.today()
         date_str = f"{today.day:02d} de {_MONTHS_PT[today.month]} de {today.year}"
         code = "DIO-" + "-".join(secrets.token_hex(2).upper() for _ in range(3))
@@ -221,4 +237,7 @@ class CertificateService:
             blank,
             border_bot,
         ]
+        self._cert_path(trilha["id"]).write_text(
+            json.dumps(lines, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         return lines

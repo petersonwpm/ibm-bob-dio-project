@@ -14,6 +14,7 @@ from service import CertificateService, ChallengeService, ProgressService, Trilh
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
+CERTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "certificados_emitidos")
 
 
 def _rebuild_wins(stdscr, h: int, w: int):
@@ -32,7 +33,7 @@ def main(stdscr) -> None:
     progress_repo = ProgressRepository(PROGRESS_PATH)
     progress_service = ProgressService(progress_repo)
     challenge_service = ChallengeService()
-    certificate_service = CertificateService()
+    certificate_service = CertificateService(CERTS_DIR)
     ctrl = ctrl_module.Controller(service, progress_service, challenge_service, certificate_service)
 
     h, w = stdscr.getmaxyx()
@@ -72,9 +73,16 @@ def main(stdscr) -> None:
                     if concluded:
                         ctrl.complete_current(trilha_atual)
                 elif action == view.FS_CERTIFICATE:
-                    username = view.ask_username(stdscr)
-                    if username:
-                        cert_lines = ctrl.generate_certificate(trilha_atual, username)
+                    if ctrl.has_certificate(trilha_atual["id"]):
+                        ctrl.state.message = "🔖 Certificado já emitido — exibindo cópia salva."
+                        cert_lines, _ = ctrl.get_certificate(trilha_atual, "")
+                    else:
+                        username = view.ask_username(stdscr)
+                        if not username:
+                            cert_lines = []
+                        else:
+                            cert_lines, _ = ctrl.get_certificate(trilha_atual, username)
+                    if cert_lines:
                         view.show_certificate(stdscr, cert_lines)
 
                 list_win, detail_win, cmd_win, main_h, list_w, detail_w = _rebuild_wins(
