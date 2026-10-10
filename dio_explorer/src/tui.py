@@ -14,7 +14,7 @@ from service import CertificateService, ChallengeService, ProgressService, Trilh
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
-CERTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "certificados_emitidos")
+CERTS_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "certificados-emitidos")
 
 
 def _rebuild_wins(stdscr, h: int, w: int):
