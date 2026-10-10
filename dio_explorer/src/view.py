@@ -3,7 +3,7 @@
 import curses
 
 from controller import AppState
-from model import Trilha
+from model import Track
 
 # ──────────────────────────────────────────────
 # Color pair constants
@@ -57,7 +57,7 @@ def draw_hline(win, y: int, char: str = "─", attr: int = 0) -> None:
 # ──────────────────────────────────────────────
 def draw_list(
     win,
-    trilhas: list[Trilha],
+    tracks: list[Track],
     selected: int,
     offset: int,
     in_progress_ids: set[int] | None = None,
@@ -70,7 +70,7 @@ def draw_list(
     visible = h - 2
     prog_ids = in_progress_ids or set()
     done_ids = completed_ids or set()
-    for i, t in enumerate(trilhas[offset : offset + visible]):
+    for i, t in enumerate(tracks[offset : offset + visible]):
         idx = offset + i
         row = i + 1
         level_icon = {"Iniciante": "●", "Intermediário": "◆", "Avançado": "★"}.get(t["level"], "·")
@@ -86,7 +86,7 @@ def draw_list(
             safe_addstr(win, row, 0, text.ljust(w - 1), sel_attr)
         else:
             safe_addstr(win, row, 0, text.ljust(w - 1), curses.color_pair(C_NORMAL))
-    counter = f" {selected + 1}/{len(trilhas)} ".ljust(w - 1)
+    counter = f" {selected + 1}/{len(tracks)} ".ljust(w - 1)
     safe_addstr(win, h - 1, 0, counter, curses.color_pair(C_DIM) | curses.A_DIM)
     win.noutrefresh()
 
@@ -94,12 +94,12 @@ def draw_list(
 # ──────────────────────────────────────────────
 # Right panel — trilha detail
 # ──────────────────────────────────────────────
-def draw_detail(win, trilha: Trilha | None) -> None:
+def draw_detail(win, track: Track | None) -> None:
     h, w = win.getmaxyx()
     win.erase()
     safe_addstr(win, 0, 0, " DETALHES ".center(w - 1), curses.color_pair(C_HEADER) | curses.A_BOLD)
 
-    if not trilha:
+    if not track:
         safe_addstr(win, 2, 2, "Nenhuma trilha encontrada.", curses.color_pair(C_DIM))
         win.noutrefresh()
         return
@@ -112,32 +112,32 @@ def draw_detail(win, trilha: Trilha | None) -> None:
             safe_addstr(win, row, 1, text, attr)
             row += 1
 
-    promo = trilha["promotions"]
-    lifetime = "Sim ♾️" if trilha["lifetime"] else "Não"
+    promo = track["promotions"]
+    lifetime = "Sim ♾️" if track["lifetime"] else "Não"
     discount = promo["discount"]
     has_promo = discount != "0%"
 
     line()
-    line(f"📚 {trilha['name']}", curses.color_pair(C_TITLE) | curses.A_BOLD)
+    line(f"📚 {track['name']}", curses.color_pair(C_TITLE) | curses.A_BOLD)
     line()
-    line(f"  Tecnologia : {trilha['technology']}", curses.color_pair(C_NORMAL))
-    line(f"  Nível      : {trilha['level']}", curses.color_pair(C_NORMAL))
-    line(f"  Módulos    : {trilha['modules']}", curses.color_pair(C_NORMAL))
-    line(f"  XP Total   : {trilha['total_xp']} XP", curses.color_pair(C_NORMAL))
+    line(f"  Tecnologia : {track['technology']}", curses.color_pair(C_NORMAL))
+    line(f"  Nível      : {track['level']}", curses.color_pair(C_NORMAL))
+    line(f"  Módulos    : {track['modules']}", curses.color_pair(C_NORMAL))
+    line(f"  XP Total   : {track['total_xp']} XP", curses.color_pair(C_NORMAL))
     line(f"  Vitalício  : {lifetime}", curses.color_pair(C_NORMAL))
     line()
     draw_hline(win, row, "·", curses.color_pair(C_DIM) | curses.A_DIM)
     row += 1
     line()
     line("  🏅 Badges:", curses.color_pair(C_BADGE) | curses.A_BOLD)
-    for badge in trilha["available_badges"]:
+    for badge in track["available_badges"]:
         line(f"     🎖️  {badge}", curses.color_pair(C_BADGE))
     line()
     draw_hline(win, row, "·", curses.color_pair(C_DIM) | curses.A_DIM)
     row += 1
     line()
     line("  📺 Lives:", curses.color_pair(C_NORMAL) | curses.A_BOLD)
-    for live in trilha["lives"]:
+    for live in track["lives"]:
         line(f"     • {live['title']}", curses.color_pair(C_NORMAL))
         line(f"       {live['date']}", curses.color_pair(C_DIM) | curses.A_DIM)
     line()
@@ -183,11 +183,11 @@ FS_CERTIFICATE = "certificate"
 
 def show_fullscreen(
     stdscr,
-    trilha: Trilha,
+    track: Track,
     in_progress: bool = False,
     completed: bool = False,
 ) -> str:
-    """Display full trilha detail.
+    """Display full track detail.
 
     Returns:
         FS_TOGGLE    — user pressed 's' (toggle in-progress)
@@ -197,23 +197,23 @@ def show_fullscreen(
     stdscr.clear()
     h, w = stdscr.getmaxyx()
     lines: list[tuple[str, int]] = []
-    promo = trilha["promotions"]
+    promo = track["promotions"]
     has_promo = promo["discount"] != "0%"
     lines.append(("", 0))
-    lines.append((f"  📚 {trilha['name']}", curses.color_pair(C_TITLE) | curses.A_BOLD))
+    lines.append((f"  📚 {track['name']}", curses.color_pair(C_TITLE) | curses.A_BOLD))
     lines.append(("", 0))
-    lines.append((f"  Tecnologia : {trilha['technology']}", 0))
-    lines.append((f"  Nível      : {trilha['level']}", 0))
-    lines.append((f"  Módulos    : {trilha['modules']}", 0))
-    lines.append((f"  XP Total   : {trilha['total_xp']} XP", 0))
-    lines.append((f"  Vitalício  : {'Sim' if trilha['lifetime'] else 'Não'}", 0))
+    lines.append((f"  Tecnologia : {track['technology']}", 0))
+    lines.append((f"  Nível      : {track['level']}", 0))
+    lines.append((f"  Módulos    : {track['modules']}", 0))
+    lines.append((f"  XP Total   : {track['total_xp']} XP", 0))
+    lines.append((f"  Vitalício  : {'Sim' if track['lifetime'] else 'Não'}", 0))
     lines.append(("", 0))
     lines.append(("  🏅 Badges:", curses.color_pair(C_BADGE) | curses.A_BOLD))
-    for b in trilha["available_badges"]:
+    for b in track["available_badges"]:
         lines.append((f"     🎖️  {b}", curses.color_pair(C_BADGE)))
     lines.append(("", 0))
     lines.append(("  📺 Lives:", curses.A_BOLD))
-    for live in trilha["lives"]:
+    for live in track["lives"]:
         lines.append((f"     • {live['title']} — {live['date']}", 0))
     lines.append(("", 0))
     lines.append(("  🏷️  Promoção:", curses.color_pair(C_PROMO) | curses.A_BOLD))
@@ -267,13 +267,13 @@ def show_fullscreen(
 # ──────────────────────────────────────────────
 # Challenge screen
 # ──────────────────────────────────────────────
-def show_challenge(stdscr, trilha: Trilha, challenge_text: str) -> bool:
-    """Display the challenge for a trilha.
+def show_challenge(stdscr, track: Track, challenge_text: str) -> bool:
+    """Display the challenge for a track.
 
     Returns True if the user pressed 'c' to mark it as completed.
     """
     h, w = stdscr.getmaxyx()
-    header = f" ⚔️  DESAFIO — {trilha['name']} ".center(w - 1)
+    header = f" ⚔️  DESAFIO — {track['name']} ".center(w - 1)
     lines: list[tuple[str, int]] = [("", 0)]
     for raw_line in challenge_text.splitlines():
         lines.append((f"  {raw_line}", 0))
@@ -390,16 +390,16 @@ def redraw(  # noqa: PLR0913
     detail_w,
     state: AppState,
 ) -> None:
-    trilha_atual = state.visible_trilhas[state.selected] if state.visible_trilhas else None
+    track_atual = state.visible_tracks[state.selected] if state.visible_tracks else None
     draw_list(
         list_win,
-        state.visible_trilhas,
+        state.visible_tracks,
         state.selected,
         state.list_offset,
         state.in_progress_ids,
         state.completed_ids,
     )
-    draw_detail(detail_win, trilha_atual)
+    draw_detail(detail_win, track_atual)
     draw_cmdbar(
         cmd_win,
         state.prompt,

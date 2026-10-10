@@ -1,4 +1,4 @@
-"""Service layer — business logic for trilha operations."""
+"""Service layer — business logic for track operations."""
 
 import json
 import secrets
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from model import ProgressRepository, Trilha, TrilhaRepository
+from model import ProgressRepository, Track, TrackRepository
 
 _MONTHS_PT = [
     "",
@@ -91,23 +91,23 @@ _CHALLENGE_TEMPLATES: dict[str, str] = {
 
 @dataclass
 class SearchResult:
-    trilhas: list[Trilha]
+    tracks: list[Track]
     message: str
     found: bool
 
 
-class TrilhaService:
-    def __init__(self, repo: TrilhaRepository) -> None:
+class TrackService:
+    def __init__(self, repo: TrackRepository) -> None:
         self._repo = repo
 
-    def all(self) -> list[Trilha]:
+    def all(self) -> list[Track]:
         return self._repo.all()
 
     def search(self, query: str) -> SearchResult:
         q = query.lower().strip()
         if not q:
             return SearchResult(
-                trilhas=self._repo.all(),
+                tracks=self._repo.all(),
                 message="",
                 found=True,
             )
@@ -116,12 +116,12 @@ class TrilhaService:
         ]
         if results:
             return SearchResult(
-                trilhas=results,
+                tracks=results,
                 message=f"✔ {len(results)} trilha(s) encontrada(s).",
                 found=True,
             )
         return SearchResult(
-            trilhas=self._repo.all(),
+            tracks=self._repo.all(),
             message="✘ Nenhuma trilha encontrada. Mostrando todas.",
             found=False,
         )
@@ -131,25 +131,25 @@ class ProgressService:
     def __init__(self, repo: ProgressRepository) -> None:
         self._repo = repo
 
-    def is_in_progress(self, trilha_id: int) -> bool:
-        return self._repo.is_in_progress(trilha_id)
+    def is_in_progress(self, track_id: int) -> bool:
+        return self._repo.is_in_progress(track_id)
 
     def all_ids(self) -> set[int]:
         return self._repo.all_ids()
 
-    def toggle(self, trilha_id: int) -> str:
-        """Start or stop a trilha. Returns a feedback message."""
-        if self._repo.is_completed(trilha_id):
+    def toggle(self, track_id: int) -> str:
+        """Start or stop a track. Returns a feedback message."""
+        if self._repo.is_completed(track_id):
             return "✔ Trilha já concluída."
-        if self._repo.is_in_progress(trilha_id):
-            self._repo.remove(trilha_id)
+        if self._repo.is_in_progress(track_id):
+            self._repo.remove(track_id)
             return "✘ Trilha removida do progresso."
-        self._repo.add(trilha_id)
+        self._repo.add(track_id)
         return "✔ Trilha marcada como em andamento!"
 
-    def complete(self, trilha_id: int) -> str:
-        """Mark a trilha as completed (irreversible). Returns a feedback message."""
-        self._repo.complete(trilha_id)
+    def complete(self, track_id: int) -> str:
+        """Mark a track as completed (irreversible). Returns a feedback message."""
+        self._repo.complete(track_id)
         return "🏆 Trilha concluída! Parabéns!"
 
     def all_completed_ids(self) -> set[int]:
@@ -157,10 +157,10 @@ class ProgressService:
 
 
 class ChallengeService:
-    def generate(self, trilha: Trilha) -> str:
-        """Generate a challenge text for the given trilha based on its level."""
-        level = trilha["level"]
-        technology = trilha["technology"]
+    def generate(self, track: Track) -> str:
+        """Generate a challenge text for the given track based on its level."""
+        level = track["level"]
+        technology = track["technology"]
         template = _CHALLENGE_TEMPLATES.get(level, _CHALLENGE_TEMPLATES["Iniciante"])
         return template.format(technology=technology)
 
@@ -170,17 +170,17 @@ class CertificateService:
         self._dir = Path(dir_path)
         self._dir.mkdir(parents=True, exist_ok=True)
 
-    def _cert_path(self, trilha_id: int) -> Path:
-        return self._dir / f"certificado_trilha_{trilha_id}.json"
+    def _cert_path(self, track_id: int) -> Path:
+        return self._dir / f"certificado_trilha_{track_id}.json"
 
-    def load(self, trilha_id: int) -> list[str] | None:
+    def load(self, track_id: int) -> list[str] | None:
         """Return saved certificate lines, or None if not yet generated."""
-        path = self._cert_path(trilha_id)
+        path = self._cert_path(track_id)
         if path.exists():
             return json.loads(path.read_text(encoding="utf-8"))
         return None
 
-    def generate(self, trilha: Trilha, username: str) -> list[str]:
+    def generate(self, track: Track, username: str) -> list[str]:
         """Generate, persist and return the certificate lines."""
         today = date.today()
         date_str = f"{today.day:02d} de {_MONTHS_PT[today.month]} de {today.year}"
@@ -197,7 +197,7 @@ class CertificateService:
         def center_row(text: str) -> str:
             return "║" + text.center(W) + "║"
 
-        badges_lines = [row(f"     🎖️  {b}") for b in trilha["available_badges"]]
+        badges_lines = [row(f"     🎖️  {b}") for b in track["available_badges"]]
 
         lines = [
             border_top,
@@ -213,12 +213,12 @@ class CertificateService:
             blank,
             row("concluiu com êxito a trilha de aprendizado:"),
             blank,
-            row(f"📚  {trilha['name']}"),
+            row(f"📚  {track['name']}"),
             blank,
-            row(f"Tecnologia: {trilha['technology']}"),
-            row(f"Nível:      {trilha['level']}"),
-            row(f"Módulos:    {trilha['modules']} módulos concluídos"),
-            row(f"XP obtido:  {trilha['total_xp']} XP"),
+            row(f"Tecnologia: {track['technology']}"),
+            row(f"Nível:      {track['level']}"),
+            row(f"Módulos:    {track['modules']} módulos concluídos"),
+            row(f"XP obtido:  {track['total_xp']} XP"),
             blank,
             border_mid,
             blank,
@@ -237,7 +237,7 @@ class CertificateService:
             blank,
             border_bot,
         ]
-        self._cert_path(trilha["id"]).write_text(
+        self._cert_path(track["id"]).write_text(
             json.dumps(lines, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         return lines

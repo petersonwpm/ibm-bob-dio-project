@@ -15,7 +15,7 @@ class Live(TypedDict):
     date: str
 
 
-class Trilha(TypedDict):
+class Track(TypedDict):
     id: int
     name: str
     technology: str
@@ -28,12 +28,12 @@ class Trilha(TypedDict):
     lives: list[Live]
 
 
-class TrilhaRepository:
+class TrackRepository:
     def __init__(self, path: str) -> None:
         with open(path, encoding="utf-8") as f:
-            self._data: list[Trilha] = json.load(f)["trilhas"]
+            self._data: list[Track] = json.load(f)["trilhas"]
 
-    def all(self) -> list[Trilha]:
+    def all(self) -> list[Track]:
         return self._data
 
 

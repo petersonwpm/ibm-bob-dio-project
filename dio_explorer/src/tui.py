@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 import controller as ctrl_module
 import view
-from model import ProgressRepository, TrilhaRepository
-from service import CertificateService, ChallengeService, ProgressService, TrilhaService
+from model import ProgressRepository, TrackRepository
+from service import CertificateService, ChallengeService, ProgressService, TrackService
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
@@ -28,8 +28,8 @@ def main(stdscr) -> None:
     view.init_colors()
     stdscr.keypad(True)
 
-    repo = TrilhaRepository(DATA_PATH)
-    service = TrilhaService(repo)
+    repo = TrackRepository(DATA_PATH)
+    service = TrackService(repo)
     progress_repo = ProgressRepository(PROGRESS_PATH)
     progress_service = ProgressService(progress_repo)
     challenge_service = ChallengeService()
@@ -55,33 +55,33 @@ def main(stdscr) -> None:
 
         # fullscreen detail on Enter
         if not ctrl.state.in_cmd_mode and key in (ord("\n"), curses.KEY_ENTER):
-            trilha_atual = ctrl.current_trilha()
-            if trilha_atual:
-                tid = trilha_atual["id"]
+            track_atual = ctrl.current_track()
+            if track_atual:
+                tid = track_atual["id"]
                 in_progress = tid in ctrl.state.in_progress_ids
                 completed = tid in ctrl.state.completed_ids
 
                 action = view.show_fullscreen(
-                    stdscr, trilha_atual, in_progress=in_progress, completed=completed
+                    stdscr, track_atual, in_progress=in_progress, completed=completed
                 )
 
                 if action == view.FS_TOGGLE:
                     ctrl.toggle_progress()
                 elif action == view.FS_CHALLENGE:
-                    challenge_text = ctrl.generate_challenge(trilha_atual)
-                    concluded = view.show_challenge(stdscr, trilha_atual, challenge_text)
+                    challenge_text = ctrl.generate_challenge(track_atual)
+                    concluded = view.show_challenge(stdscr, track_atual, challenge_text)
                     if concluded:
-                        ctrl.complete_current(trilha_atual)
+                        ctrl.complete_current(track_atual)
                 elif action == view.FS_CERTIFICATE:
-                    if ctrl.has_certificate(trilha_atual["id"]):
+                    if ctrl.has_certificate(track_atual["id"]):
                         ctrl.state.message = "🔖 Certificado já emitido — exibindo cópia salva."
-                        cert_lines, _ = ctrl.get_certificate(trilha_atual, "")
+                        cert_lines, _ = ctrl.get_certificate(track_atual, "")
                     else:
                         username = view.ask_username(stdscr)
                         if not username:
                             cert_lines = []
                         else:
-                            cert_lines, _ = ctrl.get_certificate(trilha_atual, username)
+                            cert_lines, _ = ctrl.get_certificate(track_atual, username)
                     if cert_lines:
                         view.show_certificate(stdscr, cert_lines)
 

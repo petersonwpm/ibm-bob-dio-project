@@ -3,14 +3,14 @@
 import curses
 from dataclasses import dataclass, field
 
-from model import Trilha
-from service import CertificateService, ChallengeService, ProgressService, TrilhaService
+from model import Track
+from service import CertificateService, ChallengeService, ProgressService, TrackService
 
 
 @dataclass
 class AppState:
-    all_trilhas: list[Trilha] = field(default_factory=list)
-    visible_trilhas: list[Trilha] = field(default_factory=list)
+    all_tracks: list[Track] = field(default_factory=list)
+    visible_tracks: list[Track] = field(default_factory=list)
     in_progress_ids: set[int] = field(default_factory=set)
     completed_ids: set[int] = field(default_factory=set)
     selected: int = 0
@@ -24,7 +24,7 @@ class AppState:
 class Controller:
     def __init__(
         self,
-        service: TrilhaService,
+        service: TrackService,
         progress_service: ProgressService,
         challenge_service: ChallengeService,
         certificate_service: CertificateService,
@@ -33,48 +33,48 @@ class Controller:
         self._progress = progress_service
         self._challenge = challenge_service
         self._certificate = certificate_service
-        trilhas = service.all()
+        tracks = service.all()
         self.state = AppState(
-            all_trilhas=trilhas,
-            visible_trilhas=list(trilhas),
+            all_tracks=tracks,
+            visible_tracks=list(tracks),
             in_progress_ids=progress_service.all_ids(),
             completed_ids=progress_service.all_completed_ids(),
         )
 
-    def current_trilha(self) -> Trilha | None:
+    def current_track(self) -> Track | None:
         s = self.state
-        return s.visible_trilhas[s.selected] if s.visible_trilhas else None
+        return s.visible_tracks[s.selected] if s.visible_tracks else None
 
-    def generate_challenge(self, trilha: Trilha) -> str:
-        return self._challenge.generate(trilha)
+    def generate_challenge(self, track: Track) -> str:
+        return self._challenge.generate(track)
 
-    def get_certificate(self, trilha: Trilha, username: str) -> tuple[list[str], bool]:
+    def get_certificate(self, track: Track, username: str) -> tuple[list[str], bool]:
         """Return (cert_lines, from_cache).
 
-        Loads an existing certificate if one was already issued for this trilha.
+        Loads an existing certificate if one was already issued for this track.
         Generates and persists a new one otherwise.
         """
-        cached = self._certificate.load(trilha["id"])
+        cached = self._certificate.load(track["id"])
         if cached is not None:
             return cached, True
-        return self._certificate.generate(trilha, username), False
+        return self._certificate.generate(track, username), False
 
-    def has_certificate(self, trilha_id: int) -> bool:
-        """Return True if a certificate has already been issued for this trilha."""
-        return self._certificate.load(trilha_id) is not None
+    def has_certificate(self, track_id: int) -> bool:
+        """Return True if a certificate has already been issued for this track."""
+        return self._certificate.load(track_id) is not None
 
     def toggle_progress(self) -> str:
-        trilha = self.current_trilha()
-        if not trilha:
+        track = self.current_track()
+        if not track:
             return ""
-        msg = self._progress.toggle(trilha["id"])
+        msg = self._progress.toggle(track["id"])
         self._sync_progress_state()
         self.state.message = msg
         return msg
 
-    def complete_current(self, trilha: Trilha) -> str:
-        """Mark the given trilha as completed. Returns feedback message."""
-        msg = self._progress.complete(trilha["id"])
+    def complete_current(self, track: Track) -> str:
+        """Mark the given track as completed. Returns feedback message."""
+        msg = self._progress.complete(track["id"])
         self._sync_progress_state()
         self.state.message = msg
         return msg
@@ -86,17 +86,17 @@ class Controller:
     def apply_filter(self, query: str) -> None:
         result = self._service.search(query)
         s = self.state
-        s.visible_trilhas = result.trilhas
+        s.visible_tracks = result.tracks
         s.message = result.message
         s.selected = 0
         s.list_offset = 0
 
     def apply_desafio_filter(self) -> None:
-        """Show only in-progress trilhas. Sets message if none exist."""
-        in_progress = [t for t in self.state.all_trilhas if t["id"] in self.state.in_progress_ids]
+        """Show only in-progress tracks. Sets message if none exist."""
+        in_progress = [t for t in self.state.all_tracks if t["id"] in self.state.in_progress_ids]
         s = self.state
         if in_progress:
-            s.visible_trilhas = in_progress
+            s.visible_tracks = in_progress
             s.message = f"⏵ {len(in_progress)} trilha(s) em andamento."
         else:
             s.message = "Nenhuma trilha em andamento. Use Enter para iniciar uma."
@@ -104,11 +104,11 @@ class Controller:
         s.list_offset = 0
 
     def apply_certificado_filter(self) -> None:
-        """Show only completed trilhas. Sets message if none exist."""
-        completed = [t for t in self.state.all_trilhas if t["id"] in self.state.completed_ids]
+        """Show only completed tracks. Sets message if none exist."""
+        completed = [t for t in self.state.all_tracks if t["id"] in self.state.completed_ids]
         s = self.state
         if completed:
-            s.visible_trilhas = completed
+            s.visible_tracks = completed
             s.message = f"🏆 {len(completed)} trilha(s) concluída(s)."
         else:
             s.message = "Nenhuma trilha concluída ainda. Complete um desafio primeiro."
@@ -130,7 +130,7 @@ class Controller:
         if key in (ord("q"), ord("Q")):
             return False
         elif key == curses.KEY_DOWN:
-            if s.selected < len(s.visible_trilhas) - 1:
+            if s.selected < len(s.visible_tracks) - 1:
                 s.selected += 1
                 if s.selected >= s.list_offset + visible_rows:
                     s.list_offset += 1
@@ -143,7 +143,7 @@ class Controller:
             s.in_cmd_mode = True
             s.cmd_input = "/"
         elif key == 27:  # ESC — clear filter
-            s.visible_trilhas = list(s.all_trilhas)
+            s.visible_tracks = list(s.all_tracks)
             s.selected = 0
             s.list_offset = 0
             s.cmd_input = ""
@@ -172,7 +172,8 @@ class Controller:
                 self.apply_certificado_filter()
             else:
                 s.message = (
-                    f"Unknown command: {command}. Use /trilha [filter], /desafio or /certificado"
+                    f"Comando desconhecido: {command}."
+                    " Use /trilha [filtro], /desafio ou /certificado"
                 )
             s.in_cmd_mode = False
             s.cmd_input = ""
