@@ -119,6 +119,8 @@ ibm-bob-dio-project/
 │   │   ├── trilhas_dio.json         # Catálogo de 30 trilhas (somente leitura)
 │   │   ├── progress.json            # Progresso do usuário (gerado em runtime)
 │   │   └── certificados-emitidos/   # Certificados gerados (gerado em runtime)
+│   ├── mcp/
+│   │   └── server.py                # Servidor MCP (expõe ferramentas para agentes IA)
 │   ├── docs/
 │   │   └── mvc-refactor.md          # Documentação da arquitetura e roadmap de testes
 │   └── commands/                    # Reservado
@@ -167,7 +169,7 @@ cd ibm-bob-dio-project
 
 # Crie o ambiente virtual e instale as dependências
 uv venv
-uv pip install --python .venv/bin/python ruff
+uv pip install --python .venv/bin/python "mcp[cli]>=2.3.0" ruff
 ```
 
 ### Executar a TUI
@@ -210,6 +212,49 @@ python3 -m py_compile dio_explorer/src/model.py \
 - **`model.py` e `controller.py` não importam `curses`** — são testáveis sem terminal
 - **`view.py` nunca chama `win.refresh()`** — usa `win.noutrefresh()` + `curses.doupdate()`
 - **`line-length = 100`** configurado no `pyproject.toml`
+
+---
+
+## 🤖 Servidor MCP
+
+O projeto inclui um servidor [MCP (Model Context Protocol)](https://modelcontextprotocol.io) em `dio_explorer/mcp/server.py` que expõe as funcionalidades do DIO Explorer como ferramentas para agentes de IA (como o IBM Bob).
+
+### Ferramentas disponíveis
+
+| Ferramenta | Descrição |
+|---|---|
+| `list_tracks` | Lista todas as trilhas, com filtro opcional por nome ou tecnologia |
+| `get_track` | Retorna detalhes completos de uma trilha pelo ID |
+| `get_progress` | Retorna os IDs de trilhas em andamento e concluídas |
+| `toggle_progress` | Inicia ou remove uma trilha do progresso |
+| `generate_challenge` | Gera um desafio de código para uma trilha pelo ID |
+| `complete_track` | Marca uma trilha como concluída (irreversível) |
+| `get_certificate` | Carrega ou gera o certificado de uma trilha concluída |
+
+### Como registrar no Bob
+
+Adicione ao arquivo `mcp.json` do workspace (`.bob/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "dio-explorer": {
+      "command": ".venv/bin/python",
+      "args": ["dio_explorer/mcp/server.py"]
+    }
+  }
+}
+```
+
+> O servidor lê e grava os mesmos arquivos de dados da TUI (`progress.json`, `certificados-emitidos/`), portanto o estado é compartilhado entre as duas interfaces.
+
+### Executar o servidor manualmente (para testes)
+
+```bash
+.venv/bin/python dio_explorer/mcp/server.py
+```
+
+O servidor usa transporte **stdio** — aguarda mensagens JSON-RPC na entrada padrão.
 
 ---
 
