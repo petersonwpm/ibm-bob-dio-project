@@ -216,7 +216,8 @@ class CertificateService:
             row(f"🌐 Verifique em: web.dio.me/certificate/{code}"),
             blank,
             row("___________________________    ___________________________"),
-            row("Assinatura do Instrutor          Diretor Acadêmico DIO"),
+            row("Prof. Ana Beatriz Ferreira       Rodrigo Pimentel"),
+            row("Instrutora Chefe DIO             Diretor Acadêmico DIO"),
             blank,
             border_bot,
         ]
