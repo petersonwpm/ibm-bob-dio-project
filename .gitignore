@@ -7,3 +7,4 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+dio_explorer/data/certificados-emitidos/

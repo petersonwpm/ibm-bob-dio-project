@@ -6,6 +6,7 @@ data/cache/
 
 # Certificados emitidos
 docs/certificados-emitidos/
+dio_explorer/data/certificados-emitidos/
 
 # Arquivos temporários
 *.tmp
