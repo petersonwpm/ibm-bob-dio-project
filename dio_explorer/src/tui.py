@@ -4,54 +4,48 @@
 import curses
 import json
 import os
-import sys
-from dataclasses import dataclass, field
-from typing import List, Optional
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
 
 # ──────────────────────────────────────────────
 # Cores
 # ──────────────────────────────────────────────
-C_NORMAL   = 1
-C_HEADER   = 2
+C_NORMAL = 1
+C_HEADER = 2
 C_SELECTED = 3
-C_TITLE    = 4
-C_BADGE    = 5
-C_DIM      = 6
-C_PROMO    = 7
-C_CMD      = 8
+C_TITLE = 4
+C_BADGE = 5
+C_DIM = 6
+C_PROMO = 7
+C_CMD = 8
 
 
 def init_colors() -> None:
     curses.start_color()
     curses.use_default_colors()
-    curses.init_pair(C_NORMAL,   curses.COLOR_WHITE,   -1)
-    curses.init_pair(C_HEADER,   curses.COLOR_BLACK,    curses.COLOR_CYAN)
-    curses.init_pair(C_SELECTED, curses.COLOR_BLACK,    curses.COLOR_YELLOW)
-    curses.init_pair(C_TITLE,    curses.COLOR_CYAN,    -1)
-    curses.init_pair(C_BADGE,    curses.COLOR_MAGENTA, -1)
-    curses.init_pair(C_DIM,      curses.COLOR_WHITE,   -1)
-    curses.init_pair(C_PROMO,    curses.COLOR_GREEN,   -1)
-    curses.init_pair(C_CMD,      curses.COLOR_YELLOW,  -1)
+    curses.init_pair(C_NORMAL, curses.COLOR_WHITE, -1)
+    curses.init_pair(C_HEADER, curses.COLOR_BLACK, curses.COLOR_CYAN)
+    curses.init_pair(C_SELECTED, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+    curses.init_pair(C_TITLE, curses.COLOR_CYAN, -1)
+    curses.init_pair(C_BADGE, curses.COLOR_MAGENTA, -1)
+    curses.init_pair(C_DIM, curses.COLOR_WHITE, -1)
+    curses.init_pair(C_PROMO, curses.COLOR_GREEN, -1)
+    curses.init_pair(C_CMD, curses.COLOR_YELLOW, -1)
 
 
 # ──────────────────────────────────────────────
 # Dados
 # ──────────────────────────────────────────────
-def load_trilhas() -> List[dict]:
+def load_trilhas() -> list[dict]:
     with open(DATA_PATH, encoding="utf-8") as f:
         return json.load(f)["trilhas"]
 
 
-def filter_trilhas(trilhas: List[dict], query: str) -> List[dict]:
+def filter_trilhas(trilhas: list[dict], query: str) -> list[dict]:
     q = query.lower().strip()
     if not q:
         return trilhas
-    return [
-        t for t in trilhas
-        if q in t["name"].lower() or q in t["technology"].lower()
-    ]
+    return [t for t in trilhas if q in t["name"].lower() or q in t["technology"].lower()]
 
 
 # ──────────────────────────────────────────────
@@ -78,10 +72,11 @@ def draw_hline(win, y: int, char: str = "─", attr: int = 0) -> None:
 # ──────────────────────────────────────────────
 # Painel esquerdo — lista de trilhas
 # ──────────────────────────────────────────────
-def draw_list(win, trilhas: List[dict], selected: int, offset: int) -> None:
+def draw_list(win, trilhas: list[dict], selected: int, offset: int) -> None:
     h, w = win.getmaxyx()
     win.erase()
-    safe_addstr(win, 0, 0, " TRILHAS DIO ".center(w - 1), curses.color_pair(C_HEADER) | curses.A_BOLD)
+    header_attr = curses.color_pair(C_HEADER) | curses.A_BOLD
+    safe_addstr(win, 0, 0, " TRILHAS DIO ".center(w - 1), header_attr)
     visible = h - 2
     for i, t in enumerate(trilhas[offset : offset + visible]):
         idx = offset + i
@@ -89,18 +84,19 @@ def draw_list(win, trilhas: List[dict], selected: int, offset: int) -> None:
         level_icon = {"Iniciante": "●", "Intermediário": "◆", "Avançado": "★"}.get(t["level"], "·")
         text = f" {level_icon} {t['name']}"
         if idx == selected:
-            safe_addstr(win, row, 0, text.ljust(w - 1), curses.color_pair(C_SELECTED) | curses.A_BOLD)
+            sel_attr = curses.color_pair(C_SELECTED) | curses.A_BOLD
+            safe_addstr(win, row, 0, text.ljust(w - 1), sel_attr)
         else:
-            attr = curses.color_pair(C_NORMAL)
-            safe_addstr(win, row, 0, text.ljust(w - 1), attr)
-    safe_addstr(win, h - 1, 0, f" {selected + 1}/{len(trilhas)} ".ljust(w - 1), curses.color_pair(C_DIM) | curses.A_DIM)
+            safe_addstr(win, row, 0, text.ljust(w - 1), curses.color_pair(C_NORMAL))
+    counter = f" {selected + 1}/{len(trilhas)} ".ljust(w - 1)
+    safe_addstr(win, h - 1, 0, counter, curses.color_pair(C_DIM) | curses.A_DIM)
     win.refresh()
 
 
 # ──────────────────────────────────────────────
 # Painel direito — detalhe da trilha
 # ──────────────────────────────────────────────
-def draw_detail(win, trilha: Optional[dict]) -> None:
+def draw_detail(win, trilha: dict | None) -> None:
     h, w = win.getmaxyx()
     win.erase()
     safe_addstr(win, 0, 0, " DETALHES ".center(w - 1), curses.color_pair(C_HEADER) | curses.A_BOLD)
@@ -111,6 +107,7 @@ def draw_detail(win, trilha: Optional[dict]) -> None:
         return
 
     row = 1
+
     def line(text: str = "", attr: int = 0) -> None:
         nonlocal row
         if row < h - 1:
@@ -150,7 +147,8 @@ def draw_detail(win, trilha: Optional[dict]) -> None:
     row += 1
     line()
     if has_promo:
-        line(f"  🏷️  Promoção: {discount} off — até {promo['valid_until']}", curses.color_pair(C_PROMO) | curses.A_BOLD)
+        promo_attr = curses.color_pair(C_PROMO) | curses.A_BOLD
+        line(f"  🏷️  Promoção: {discount} off — até {promo['valid_until']}", promo_attr)
         line(f"     {promo['description']}", curses.color_pair(C_PROMO))
     else:
         line("  Sem promoção ativa.", curses.color_pair(C_DIM) | curses.A_DIM)
@@ -203,17 +201,20 @@ def show_fullscreen(stdscr, trilha: dict) -> None:
     lines.append(("", 0))
     lines.append(("  🏷️  Promoção:", curses.color_pair(C_PROMO) | curses.A_BOLD))
     if has_promo:
-        lines.append((f"     {promo['discount']} off até {promo['valid_until']}", curses.color_pair(C_PROMO)))
+        promo_line = f"     {promo['discount']} off até {promo['valid_until']}"
+        lines.append((promo_line, curses.color_pair(C_PROMO)))
         lines.append((f"     {promo['description']}", curses.color_pair(C_PROMO)))
     else:
         lines.append(("     Sem promoção ativa.", curses.color_pair(C_DIM) | curses.A_DIM))
     lines.append(("", 0))
-    lines.append(("  [ pressione qualquer tecla para voltar ]", curses.color_pair(C_DIM) | curses.A_DIM))
+    back_attr = curses.color_pair(C_DIM) | curses.A_DIM
+    lines.append(("  [ pressione qualquer tecla para voltar ]", back_attr))
 
     offset = 0
     while True:
         stdscr.erase()
-        safe_addstr(stdscr, 0, 0, " DETALHE COMPLETO ".center(w - 1), curses.color_pair(C_HEADER) | curses.A_BOLD)
+        header_attr = curses.color_pair(C_HEADER) | curses.A_BOLD
+        safe_addstr(stdscr, 0, 0, " DETALHE COMPLETO ".center(w - 1), header_attr)
         for i, (text, attr) in enumerate(lines[offset:]):
             row = i + 1
             if row >= h - 1:
@@ -255,9 +256,9 @@ def main(stdscr) -> None:
         cmd_h = 4
         main_h = h - cmd_h
 
-        list_win   = curses.newwin(main_h, list_w, 0, 0)
+        list_win = curses.newwin(main_h, list_w, 0, 0)
         detail_win = curses.newwin(main_h, detail_w, 0, list_w)
-        cmd_win    = curses.newwin(cmd_h, w, main_h, 0)
+        cmd_win = curses.newwin(cmd_h, w, main_h, 0)
 
         trilha_atual = visible_trilhas[selected] if visible_trilhas else None
 
