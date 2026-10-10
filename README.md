@@ -124,6 +124,12 @@ ibm-bob-dio-project/
 │   ├── docs/
 │   │   └── mvc-refactor.md          # Documentação da arquitetura e roadmap de testes
 │   └── commands/                    # Reservado
+├── tests/
+│   ├── conftest.py                  # Fixtures compartilhadas (dados de exemplo, tmp_path)
+│   ├── test_model.py                # Testes de TrackRepository e ProgressRepository
+│   ├── test_service.py              # Testes de TrackService, ProgressService, ChallengeService, CertificateService
+│   ├── test_controller.py           # Testes do Controller (navegação, comandos, filtros)
+│   └── test_mcp_tools.py            # Testes das 7 ferramentas do servidor MCP
 ├── .bob/
 │   ├── commands/                    # Comandos slash do Bob (/trilha, /desafio, /certificado)
 │   └── skills/                      # Skills do Bob espelhando os comandos
@@ -183,6 +189,33 @@ uv pip install --python .venv/bin/python "mcp[cli]>=2.3.0" ruff
 ---
 
 ## 🛠️ Desenvolvimento
+
+### Testes
+
+O projeto usa **pytest**. Cada camada é testada de forma isolada — sem terminal, sem arquivos reais.
+
+```bash
+# Rodar todos os testes
+.venv/bin/python -m pytest tests/ -v
+
+# Rodar apenas um módulo
+.venv/bin/python -m pytest tests/test_service.py -v
+```
+
+**Cobertura dos testes:**
+
+| Arquivo | O que testa |
+|---|---|
+| `test_model.py` | Carga do JSON, add/remove/complete no `ProgressRepository`, persistência em disco |
+| `test_service.py` | Busca/filtro de trilhas, toggle/complete de progresso, geração de desafios (3 níveis + fallback), geração e carga de certificados |
+| `test_controller.py` | Navegação por teclas, modo de comando (`/trilha`, `/desafio`, `/certificado`), scroll, toggle de progresso, cache de certificado |
+| `test_mcp_tools.py` | Todas as 7 ferramentas MCP com injeção de serviços via `monkeypatch` |
+
+**Estratégias adotadas:**
+
+- Todos os testes usam `tmp_path` do pytest — nenhum arquivo real é lido ou gravado.
+- `test_controller.py` não inicializa o curses: as constantes de tecla (`KEY_DOWN`, `KEY_UP` etc.) são apenas inteiros e podem ser usados diretamente.
+- `test_mcp_tools.py` usa `monkeypatch` para substituir os singletons do servidor (`_track_svc`, `_progress_svc` etc.) por instâncias temporárias, garantindo isolamento entre testes.
 
 ### Lint e formatação
 
