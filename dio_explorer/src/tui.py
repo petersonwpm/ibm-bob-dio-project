@@ -9,10 +9,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 import controller as ctrl_module
 import view
-from model import TrilhaRepository
-from service import TrilhaService
+from model import ProgressRepository, TrilhaRepository
+from service import ProgressService, TrilhaService
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "trilhas_dio.json")
+PROGRESS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "progress.json")
 
 
 def main(stdscr) -> None:
@@ -22,7 +23,9 @@ def main(stdscr) -> None:
 
     repo = TrilhaRepository(DATA_PATH)
     service = TrilhaService(repo)
-    ctrl = ctrl_module.Controller(service)
+    progress_repo = ProgressRepository(PROGRESS_PATH)
+    progress_service = ProgressService(progress_repo)
+    ctrl = ctrl_module.Controller(service, progress_service)
 
     h, w = stdscr.getmaxyx()
     list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)
@@ -43,10 +46,12 @@ def main(stdscr) -> None:
 
         # fullscreen detail on Enter
         if not ctrl.state.in_cmd_mode and key in (ord("\n"), curses.KEY_ENTER):
-            s = ctrl.state
-            trilha_atual = s.visible_trilhas[s.selected] if s.visible_trilhas else None
+            trilha_atual = ctrl.current_trilha()
             if trilha_atual:
-                view.show_fullscreen(stdscr, trilha_atual)
+                in_progress = trilha_atual["id"] in ctrl.state.in_progress_ids
+                toggled = view.show_fullscreen(stdscr, trilha_atual, in_progress=in_progress)
+                if toggled:
+                    ctrl.toggle_progress()
                 stdscr.clear()
                 stdscr.refresh()
                 list_win, detail_win, cmd_win, main_h, list_w, detail_w = view.make_wins(h, w)

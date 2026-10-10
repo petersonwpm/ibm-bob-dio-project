@@ -4,13 +4,14 @@ import curses
 from dataclasses import dataclass, field
 
 from model import Trilha
-from service import TrilhaService
+from service import ProgressService, TrilhaService
 
 
 @dataclass
 class AppState:
     all_trilhas: list[Trilha] = field(default_factory=list)
     visible_trilhas: list[Trilha] = field(default_factory=list)
+    in_progress_ids: set[int] = field(default_factory=set)
     selected: int = 0
     list_offset: int = 0
     cmd_input: str = ""
@@ -20,13 +21,29 @@ class AppState:
 
 
 class Controller:
-    def __init__(self, service: TrilhaService) -> None:
+    def __init__(self, service: TrilhaService, progress_service: ProgressService) -> None:
         self._service = service
+        self._progress = progress_service
         trilhas = service.all()
         self.state = AppState(
             all_trilhas=trilhas,
             visible_trilhas=list(trilhas),
+            in_progress_ids=progress_service.all_ids(),
         )
+
+    def current_trilha(self) -> Trilha | None:
+        s = self.state
+        return s.visible_trilhas[s.selected] if s.visible_trilhas else None
+
+    def toggle_progress(self) -> str:
+        """Toggle in-progress state of the currently selected trilha. Returns feedback message."""
+        trilha = self.current_trilha()
+        if not trilha:
+            return ""
+        msg = self._progress.toggle(trilha["id"])
+        self.state.in_progress_ids = self._progress.all_ids()
+        self.state.message = msg
+        return msg
 
     def apply_filter(self, query: str) -> None:
         result = self._service.search(query)

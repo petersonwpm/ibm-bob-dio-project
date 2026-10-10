@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from model import Trilha, TrilhaRepository
+from model import ProgressRepository, Trilha, TrilhaRepository
 
 
 @dataclass
@@ -41,3 +41,22 @@ class TrilhaService:
             message="✘ Nenhuma trilha encontrada. Mostrando todas.",
             found=False,
         )
+
+
+class ProgressService:
+    def __init__(self, repo: ProgressRepository) -> None:
+        self._repo = repo
+
+    def is_in_progress(self, trilha_id: int) -> bool:
+        return self._repo.is_in_progress(trilha_id)
+
+    def all_ids(self) -> set[int]:
+        return self._repo.all_ids()
+
+    def toggle(self, trilha_id: int) -> str:
+        """Start or stop a trilha. Returns a feedback message."""
+        if self._repo.is_in_progress(trilha_id):
+            self._repo.remove(trilha_id)
+            return "✘ Trilha removida do progresso."
+        self._repo.add(trilha_id)
+        return "✔ Trilha marcada como em andamento!"

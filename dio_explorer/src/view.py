@@ -55,17 +55,25 @@ def draw_hline(win, y: int, char: str = "─", attr: int = 0) -> None:
 # ──────────────────────────────────────────────
 # Left panel — trilha list
 # ──────────────────────────────────────────────
-def draw_list(win, trilhas: list[Trilha], selected: int, offset: int) -> None:
+def draw_list(
+    win,
+    trilhas: list[Trilha],
+    selected: int,
+    offset: int,
+    in_progress_ids: set[int] | None = None,
+) -> None:
     h, w = win.getmaxyx()
     win.erase()
     header_attr = curses.color_pair(C_HEADER) | curses.A_BOLD
     safe_addstr(win, 0, 0, " TRILHAS DIO ".center(w - 1), header_attr)
     visible = h - 2
+    ids = in_progress_ids or set()
     for i, t in enumerate(trilhas[offset : offset + visible]):
         idx = offset + i
         row = i + 1
         level_icon = {"Iniciante": "●", "Intermediário": "◆", "Avançado": "★"}.get(t["level"], "·")
-        text = f" {level_icon} {t['name']}"
+        progress_icon = "⏵" if t["id"] in ids else " "
+        text = f" {level_icon}{progress_icon}{t['name']}"
         if idx == selected:
             sel_attr = curses.color_pair(C_SELECTED) | curses.A_BOLD
             safe_addstr(win, row, 0, text.ljust(w - 1), sel_attr)
@@ -159,10 +167,11 @@ def draw_cmdbar(win, prompt: str, cmd_input: str, message: str) -> None:
 # ──────────────────────────────────────────────
 # Fullscreen detail overlay
 # ──────────────────────────────────────────────
-def show_fullscreen(stdscr, trilha: Trilha) -> None:
+def show_fullscreen(stdscr, trilha: Trilha, in_progress: bool = False) -> bool:
+    """Display full trilha detail. Returns True if the user pressed 's' to toggle progress."""
     stdscr.clear()
     h, w = stdscr.getmaxyx()
-    lines = []
+    lines: list[tuple[str, int]] = []
     promo = trilha["promotions"]
     has_promo = promo["discount"] != "0%"
     lines.append(("", 0))
@@ -190,8 +199,15 @@ def show_fullscreen(stdscr, trilha: Trilha) -> None:
     else:
         lines.append(("     Sem promoção ativa.", curses.color_pair(C_DIM) | curses.A_DIM))
     lines.append(("", 0))
-    back_attr = curses.color_pair(C_DIM) | curses.A_DIM
-    lines.append(("  [ pressione qualquer tecla para voltar ]", back_attr))
+
+    action_attr = curses.color_pair(C_CMD) | curses.A_BOLD
+    dim_attr = curses.color_pair(C_DIM) | curses.A_DIM
+    if in_progress:
+        lines.append(("  ⏵ Trilha em andamento", curses.color_pair(C_PROMO) | curses.A_BOLD))
+        lines.append(("  [ S ] remover do progresso    [ Esc / q ] voltar", action_attr))
+    else:
+        lines.append(("  [ S ] iniciar trilha    [ Esc / q ] voltar", action_attr))
+    lines.append(("", dim_attr))
 
     offset = 0
     while True:
@@ -205,12 +221,15 @@ def show_fullscreen(stdscr, trilha: Trilha) -> None:
             safe_addstr(stdscr, row, 0, text, attr)
         stdscr.refresh()
         key = stdscr.getch()
-        if key in (ord("q"), 27, ord("\n"), curses.KEY_BACKSPACE):
+        if key in (ord("s"), ord("S")):
+            return True
+        elif key in (ord("q"), 27, ord("\n"), curses.KEY_BACKSPACE):
             break
         elif key == curses.KEY_DOWN and offset < len(lines) - (h - 2):
             offset += 1
         elif key == curses.KEY_UP and offset > 0:
             offset -= 1
+    return False
 
 
 # ──────────────────────────────────────────────
@@ -241,7 +260,9 @@ def redraw(  # noqa: PLR0913
     state: AppState,
 ) -> None:
     trilha_atual = state.visible_trilhas[state.selected] if state.visible_trilhas else None
-    draw_list(list_win, state.visible_trilhas, state.selected, state.list_offset)
+    draw_list(
+        list_win, state.visible_trilhas, state.selected, state.list_offset, state.in_progress_ids
+    )
     draw_detail(detail_win, trilha_atual)
     draw_cmdbar(
         cmd_win,
