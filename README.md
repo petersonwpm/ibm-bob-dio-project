@@ -5,7 +5,21 @@
 Um explorador de trilhas de aprendizado da DIO com interface no terminal (TUI), construído em Python com a biblioteca `curses`. Permite navegar, filtrar e acompanhar o progresso nas trilhas, realizar desafios de código e emitir certificados — tudo sem sair do terminal.
 
 ---
+## Abordagem de Desenvolvimento
 
+Este projeto explora o desenvolvimento de software assistido por agentes de IA, utilizando o IBM Bob.
+
+O processo de desenvolvimento se concentra em cinco práticas:
+
+- **Orientação do agente:** definir convenções do projeto, restrições técnicas e regras de colaboração no arquivo `AGENTS.md`.
+- **Avaliação de soluções:** analisar as alternativas propostas pelo Bob e discutir decisões relevantes de arquitetura antes da implementação.
+- **Planejamento de funcionalidades:** definir funcionalidades e abordagens de implementação em conjunto, em vez de aceitar automaticamente a primeira sugestão do agente.
+- **Validação do código:** utilizar ferramentas como o Ruff para verificar a qualidade e a formatação do código, sem depender exclusivamente da avaliação do agente.
+- **Testes:** identificar e implementar testes que ajudem a verificar o comportamento da aplicação e a validar decisões de arquitetura.
+
+O objetivo é explorar como um desenvolvedor pode orientar um agente de IA ao longo do processo de desenvolvimento de software, mantendo o controle sobre as decisões de projeto e a qualidade do código.
+
+---
 ## ✨ Funcionalidades
 
 | Funcionalidade | Descrição |
