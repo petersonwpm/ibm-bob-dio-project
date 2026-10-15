@@ -4,6 +4,10 @@
 
 Um explorador de trilhas de aprendizado da DIO com interface no terminal (TUI), construído em Python com a biblioteca `curses`. Permite navegar, filtrar e acompanhar o progresso nas trilhas, realizar desafios de código e emitir certificados — tudo sem sair do terminal.
 
+## 📸 Demonstração
+
+![DIO Explorer — navegação, detalhes da trilha e certificado](docs/images/dio-explorer-demo.png)
+
 ---
 ## Abordagem de Desenvolvimento
 

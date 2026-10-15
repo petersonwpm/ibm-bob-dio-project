@@ -27,8 +27,6 @@ This file provides guidance to agents when working with code in this repository.
 uv pip install --python .venv/bin/python <package>
 ```
 
-No test suite exists yet.
-
 ## Project Structure
 
 ```
